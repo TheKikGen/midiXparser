@@ -55,7 +55,7 @@ The demo sketch contains many tests to validate midiXparser features you can use
         if ( Serial.available() ) {
         
            if ( midiParser.parse( Serial.read() ) {
-              // Do something for active sense  and clock
+              // Do something for active sense, clock and song pos
 
            } else if (!midiParser.isByteCaptured()) Serial.write(midiParser.getByte() ) ;
            (...)
