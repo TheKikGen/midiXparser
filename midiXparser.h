@@ -1,15 +1,3 @@
-#pragma once
-
-#ifndef midiXparser_h
-#define midiXparser_h
-
-#if ARDUINO
-#include <Arduino.h>
-#else
-#include <inttypes.h>
-typedef uint8_t byte;
-#endif
-
 /*
 
   midXparser
@@ -38,28 +26,100 @@ typedef uint8_t byte;
 
    Licence : MIT.
 */
+#pragma once
+
+#ifndef midiXparser_h
+#define midiXparser_h
+
+#if ARDUINO
+#include <Arduino.h>
+#else
+#include <inttypes.h>
+typedef uint8_t byte;
+#endif
+
+
 class midiXparser {
   uint8_t  m_midiMsg[3];
+  uint8_t  m_midiMsgRealTime[1]; // Used for real time only
   uint8_t  m_nextMidiMsglen = 0;
   bool     m_sysExMode = false;
   bool     m_isByteCaptured=false;
   byte     m_readByte;
   bool     m_runningStatusPossible=false; 
-  uint8_t  m_channelMsgFilterMask = B0000000;
-  uint8_t  m_midiChannelFilter    = 0xFF;
+  uint8_t  m_channelVoiceMsgFilterMask = noChannelVoiceMsgMsk;
+  uint8_t  m_systemCommonMsgFilterMask = noSystemCommonMsgMsk;
+  uint8_t  m_realTimeMsgFilterMask = noRealTimeMsgMsk;
+  uint8_t  m_midiChannelFilter    = allChannel;  
+  uint8_t  m_midiParsedMsgType    = noneMsgType;
+  uint8_t  m_midiCurrentMsgType   = noneMsgType;
+  
+  static const  uint8_t m_systemCommonMsglen[8];
+  
+  uint8_t* m_sysExBuffer = NULL;
+  int      m_sysExBufferSize = -1;
+  unsigned m_sysExBufferIndex=0;
+  bool     m_sysExFilterToggle = false;
 
+        
   public:
-    // Bits 6 to 0 map status 8n 9n An Bn Cn Dn En
-    enum channelMsgFilterMaskValue {
-        noteOffMsk           = B1000000,
-        noteOnMsk            = B0100000,
-        polyKeyPressureMsk   = B0010000,
-        controlChangeMsk     = B0001000,
-        programChangeMsk     = B0000100,        
-        channelPressureMsk   = B0000010,
-        pitchBendMsk         = B0000001                       
+    // Midi messages type
+    enum midiMsgType {
+        noneMsgType = 0,
+        channelVoiceMsgType = 1,
+        systemCommonMsgType = 2,
+        realTimeMsgType = 3,
+        sysExMsgType = 4
     };
 
+    enum allNoValues { 
+        allChannel = 0xFF ,
+        allMidiMsg = 0xFE,
+        noMidiMsg  = 0xFD,        
+    };
+    
+    // Bits 6 to 0 map status 8n 9n An Bn Cn Dn En
+    enum channelVoiceMsgFilterMaskValue {
+        noteOffMsk            = B10000000,
+        noteOnMsk             = B01000000,
+        polyKeyPressureMsk    = B00100000,
+        controlChangeMsk      = B00010000,
+        programChangeMsk      = B00001000,        
+        channelPressureMsk    = B00000100,
+        pitchBendMsk          = B00000010,
+        allChannelVoiceMsgMsk = B11111110,
+        noChannelVoiceMsgMsk  = B00000000,
+    };
+
+    // Bits 7 to 0 map realtime F8 to FF
+    enum realTimeMsgFilterMaskValue {
+        timingClockMsk      = B10000000, 
+        //reserved3Msk      = B01000000,
+        startMsk            = B00100000,
+        continueMsk         = B00010000,
+        stopMsk             = B00001000,
+        //reserved4Msk      = B00000100,
+        activeSensingMsk    = B00000010,
+        systemResetMsk      = B00000001,
+        allRealTimeMsgMsk   = B10111011,
+        noRealTimeMsgMsk    = B00000000
+    };
+
+    // Bits 7 to 0 map realtime (F0) to (F7)
+    enum systemCommonMsgFilterMaskValue {
+        //soxMsk              = B10000000,
+        midiTimeCodeMsk       = B01000000,
+        songPosPointerMsk     = B00100000,
+        songSelectMsk         = B00010000,
+        //reserved1Status     = B00001000,
+        //reserved2Status     = B00000100,
+        tuneRequestMsk        = B00000010,
+        //eoxStatus           = B00000001,
+        allSystemCommonMsgMsk = B01110010,      
+        noSystemCommonMsgMsk  = B00000000
+    };
+
+    
     enum midiStatusValue {
         // CHANNEL VOICE
         noteOffStatus         = 0X80,
@@ -89,22 +149,41 @@ class midiXparser {
         systemResetStatus     = 0XFF                                      
     };
 
+    // Constructor
     midiXparser();
     midiXparser(uint8_t channelMsgFilterMask) ;
     midiXparser(uint8_t  channelMsgFilterMask,uint8_t  midiChannelFilter);
+
+    // Destructor
+    ~midiXparser();
   
-    bool midiXparser::isByteCaptured() ;
-    byte midiXparser::getByte() ;
-    uint8_t * midiXparser::getMidiMsg();
-    void midiXparser::setChannelMsgFilterMask(uint8_t channelMsgFilterMask);
-    void midiXparser::setMidiChannelFilter(uint8_t midiChannelFilter);
-    bool midiXparser::parse(byte readByte);
+    // Methods
+    bool        isByteCaptured() ;
+    midiMsgType getMidiMsgType() ;
+    midiMsgType getMidiStatusMsgType(midiXparser::midiStatusValue midiStatus) ;
+    uint8_t     getMidiMsgLen();
+    uint8_t     getMidiStatusMsgLen(midiStatusValue midiStatus);
+    uint8_t *   getMidiMsg();
+    uint8_t *   getSysExMsg();
+    byte        getByte() ;
+    unsigned    getSysExMsgLen() ;
+    void        setMidiChannelFilter(uint8_t midiChannelFilter);
+    void        setChannelVoiceMsgFilter(uint8_t channelVoiceMsgFilterMask);
+    void        setSystemCommonMsgFilter(uint8_t systemCommonMsgFilterMask);    
+    void        setRealTimeMsgFilter(uint8_t realTimeMsgFilterMask);
+    void        setMidiMsgFilter(allNoValues value);
+    
+    bool        setSysExFilter(bool sysExFilterToggle,int sysExBufferSize=-1);
+  
+    bool        parse(byte readByte);
 
     // Utilities
-    static unsigned midiXparser::encodeSysEx(const byte* inData, byte* outSysEx, unsigned inLength,bool fromMsbToLsb=true);
-    static unsigned midiXparser::decodeSysEx(const byte* inSysEx, byte* outData, unsigned inLength,bool fromMsbToLsb=true);
+    static unsigned encodeSysEx(const byte* inData, byte* outSysEx, unsigned inLength,bool fromMsbToLsb=true);
+    static unsigned decodeSysEx(const byte* inSysEx, byte* outData, unsigned inLength,bool fromMsbToLsb=true);
     
 };
+
+
 
 #endif
 
