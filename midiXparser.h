@@ -5,7 +5,7 @@
   Copyright (C) 2017/2018 by The KikGen labs.
 
   HEADER CLASS FILE
-  
+
   Permission to use, copy, modify, distribute, and sell this
   software and its documentation for any purpose is hereby granted
   without fee, provided that the above copyright notice appear in
@@ -46,22 +46,23 @@ class midiXparser {
   bool     m_sysExMode = false;
   bool     m_isByteCaptured=false;
   byte     m_readByte;
-  bool     m_runningStatusPossible=false; 
+  bool     m_runningStatusPossible=false;
   uint8_t  m_channelVoiceMsgFilterMask = noChannelVoiceMsgMsk;
   uint8_t  m_systemCommonMsgFilterMask = noSystemCommonMsgMsk;
   uint8_t  m_realTimeMsgFilterMask = noRealTimeMsgMsk;
-  uint8_t  m_midiChannelFilter    = allChannel;  
+  uint8_t  m_midiChannelFilter    = allChannel;
   uint8_t  m_midiParsedMsgType    = noneMsgType;
   uint8_t  m_midiCurrentMsgType   = noneMsgType;
-  
+
   static const  uint8_t m_systemCommonMsglen[8];
-  
+  static const  uint8_t m_channelVoiceMsgMsglen[7];
+
   uint8_t* m_sysExBuffer = NULL;
   int      m_sysExBufferSize = -1;
   unsigned m_sysExBufferIndex=0;
   bool     m_sysExFilterToggle = false;
 
-        
+
   public:
     // Midi messages type
     enum midiMsgType {
@@ -72,19 +73,19 @@ class midiXparser {
         sysExMsgType = 4
     };
 
-    enum allNoValues { 
+    enum allNoValues {
         allChannel = 0xFF ,
         allMidiMsg = 0xFE,
-        noMidiMsg  = 0xFD,        
+        noMidiMsg  = 0xFD,
     };
-    
+
     // Bits 6 to 0 map status 8n 9n An Bn Cn Dn En
     enum channelVoiceMsgFilterMaskValue {
         noteOffMsk            = B10000000,
         noteOnMsk             = B01000000,
         polyKeyPressureMsk    = B00100000,
         controlChangeMsk      = B00010000,
-        programChangeMsk      = B00001000,        
+        programChangeMsk      = B00001000,
         channelPressureMsk    = B00000100,
         pitchBendMsk          = B00000010,
         allChannelVoiceMsgMsk = B11111110,
@@ -93,7 +94,7 @@ class midiXparser {
 
     // Bits 7 to 0 map realtime F8 to FF
     enum realTimeMsgFilterMaskValue {
-        timingClockMsk      = B10000000, 
+        timingClockMsk      = B10000000,
         //reserved3Msk      = B01000000,
         startMsk            = B00100000,
         continueMsk         = B00010000,
@@ -115,18 +116,18 @@ class midiXparser {
         //reserved2Status     = B00000100,
         tuneRequestMsk        = B00000010,
         //eoxStatus           = B00000001,
-        allSystemCommonMsgMsk = B01110010,      
+        allSystemCommonMsgMsk = B01110010,
         noSystemCommonMsgMsk  = B00000000
     };
 
-    
+
     enum midiStatusValue {
         // CHANNEL VOICE
         noteOffStatus         = 0X80,
         noteOnStatus          = 0X90,
         polyKeyPressureStatus = 0XA0,
         controlChangeStatus   = 0XB0,
-        programChangeStatus   = 0XC0,        
+        programChangeStatus   = 0XC0,
         channelPressureStatus = 0XD0,
         pitchBendStatus       = 0XE0,
         // SYSTEM COMMON
@@ -146,7 +147,7 @@ class midiXparser {
         stopStatus            = 0XFC,
         reserved4Status       = 0XFD,
         activeSensingStatus   = 0XFE,
-        systemResetStatus     = 0XFF                                      
+        systemResetStatus     = 0XFF
     };
 
     // Constructor
@@ -156,34 +157,33 @@ class midiXparser {
 
     // Destructor
     ~midiXparser();
-  
+
     // Methods
     bool        isByteCaptured() ;
-    midiMsgType getMidiMsgType() ;
-    midiMsgType getMidiStatusMsgType(midiXparser::midiStatusValue midiStatus) ;
+    uint8_t     getMidiMsgType() ;
+    uint8_t     getMidiStatusMsgType(uint8_t midiStatus) ;
     uint8_t     getMidiMsgLen();
-    uint8_t     getMidiStatusMsgLen(midiStatusValue midiStatus);
+    uint8_t     getMidiStatusMsgLen(uint8_t midiStatus);
     uint8_t *   getMidiMsg();
     uint8_t *   getSysExMsg();
     byte        getByte() ;
     unsigned    getSysExMsgLen() ;
     void        setMidiChannelFilter(uint8_t midiChannelFilter);
     void        setChannelVoiceMsgFilter(uint8_t channelVoiceMsgFilterMask);
-    void        setSystemCommonMsgFilter(uint8_t systemCommonMsgFilterMask);    
+    void        setSystemCommonMsgFilter(uint8_t systemCommonMsgFilterMask);
     void        setRealTimeMsgFilter(uint8_t realTimeMsgFilterMask);
     void        setMidiMsgFilter(allNoValues value);
-    
+
     bool        setSysExFilter(bool sysExFilterToggle,int sysExBufferSize=-1);
-  
+
     bool        parse(byte readByte);
 
     // Utilities
     static unsigned encodeSysEx(const byte* inData, byte* outSysEx, unsigned inLength,bool fromMsbToLsb=true);
     static unsigned decodeSysEx(const byte* inSysEx, byte* outData, unsigned inLength,bool fromMsbToLsb=true);
-    
+
 };
 
 
 
 #endif
-

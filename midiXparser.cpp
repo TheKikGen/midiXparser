@@ -29,7 +29,7 @@
 
 #include "midiXparser.h"
 
-static const  uint8_t midiXparser::m_systemCommonMsglen[]={
+const  uint8_t midiXparser::m_systemCommonMsglen[]={
         // SYSTEM COMMON
         0, // soxStatus             = 0XF0,
         2, // midiTimeCodeStatus    = 0XF1,
@@ -39,6 +39,16 @@ static const  uint8_t midiXparser::m_systemCommonMsglen[]={
         0, // reserved2Status       = 0XF5,
         1, // tuneRequestStatus     = 0XF6,
         0  // eoxStatus             = 0XF7,
+};
+
+const  uint8_t midiXparser::m_channelVoiceMsgMsglen[]={
+        3, // noteOffStatus         = 0X80,
+        3, // noteOnStatus          = 0X90,
+        3, // polyKeyPressureStatus = 0XA0,
+        3, // controlChangeStatus   = 0XB0,
+        2, // programChangeStatus   = 0XC0,
+        2, // channelPressureStatus = 0XD0,
+        3, // pitchBendStatus       = 0XE0,
 };
 
 // Constructors
@@ -66,10 +76,10 @@ midiXparser::~midiXparser() {
 bool midiXparser::isByteCaptured() { return m_isByteCaptured; }
 
 // Return the type of the last parsed midi message
-midiXparser::midiMsgType  midiXparser::getMidiMsgType() { return m_midiParsedMsgType; }
+uint8_t  midiXparser::getMidiMsgType() { return m_midiParsedMsgType; }
 
 // Return the type of a midi status (cf enum)
-midiXparser::midiMsgType  midiXparser::getMidiStatusMsgType(midiXparser::midiStatusValue midiStatus) {
+uint8_t  midiXparser::getMidiStatusMsgType(uint8_t midiStatus) {
 
   if (midiStatus >= 0xF8 ) return realTimeMsgType;
   if (midiStatus >= 0xF0 ) return systemCommonMsgType;
@@ -82,18 +92,18 @@ midiXparser::midiMsgType  midiXparser::getMidiStatusMsgType(midiXparser::midiSta
 uint8_t  midiXparser::getMidiMsgLen() {
   if (m_midiParsedMsgType == sysExMsgType )         return m_sysExBufferIndex ;
   if (m_midiParsedMsgType == realTimeMsgType )      return 1 ;
-  if (m_midiParsedMsgType == channelVoiceMsgType )  return 3 ;
+  if (m_midiParsedMsgType == channelVoiceMsgType )  return m_channelVoiceMsgMsglen[ (getMidiMsg()[0] >> 4) - 8 ] ;
   if (m_midiParsedMsgType == systemCommonMsgType )  return m_systemCommonMsglen[getMidiMsg()[0] & 0x0F] ;
 
   return 0;
 }
 
 // Return the len of a midistatus message (cf enum)
-uint8_t midiXparser::getMidiStatusMsgLen(midiXparser::midiStatusValue midiStatus) {
+uint8_t midiXparser::getMidiStatusMsgLen(uint8_t midiStatus) {
 
   if (midiStatus >= 0xF8 ) return 1;
   if (midiStatus >= 0xF0 ) return m_systemCommonMsglen[midiStatus & 0x0F];
-  if (midiStatus >= 0x80 ) return 3;
+  if (midiStatus >= 0x80 ) return m_channelVoiceMsgMsglen[ (midiStatus >> 4) - 8 ];
 
   return 0 ;
 }
@@ -172,7 +182,7 @@ bool midiXparser::setSysExFilter(bool sysExFilterToggle,int sysExBufferSize) {
     if ( sysExFilterToggle ) {
       if (sysExBufferSize <= 0) return false ;
 
-      
+
       // Already allocated. Free buffer.
       if ( m_sysExBuffer!= NULL && m_sysExFilterToggle  ) {
         free(m_sysExBuffer);
@@ -183,7 +193,7 @@ bool midiXparser::setSysExFilter(bool sysExFilterToggle,int sysExBufferSize) {
       }
 
       // (re)Allocate the buffer
-      m_sysExBuffer = calloc ( sysExBufferSize , sizeof(uint8_t) );
+      m_sysExBuffer = (uint8_t *)calloc ( sysExBufferSize , sizeof(uint8_t) );
       if ( m_sysExBuffer != NULL ) {
            m_sysExBufferSize = sysExBufferSize ;
            m_sysExBufferIndex=0;
@@ -211,7 +221,7 @@ bool midiXparser::setSysExFilter(bool sysExFilterToggle,int sysExBufferSize) {
 //-----------------------------------------------
 // The main method.
 // It parses midi byte per byte and return true
-// if a message atching filters was red.
+// if a message is matching filters.
 // Set also the byte capture flag
 ////////////////////////////////////////////////
 bool midiXparser::parse(byte readByte) {
