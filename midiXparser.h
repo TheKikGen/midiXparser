@@ -44,8 +44,10 @@ class midiXparser {
   uint8_t  m_midiMsgRealTime[1]; // Used for real time only
   uint8_t  m_nextMidiMsglen = 0;
   bool     m_sysExMode = false;
+  bool     m_sysExError = false;
   bool     m_isByteCaptured=false;
-  byte     m_readByte;
+  byte     m_readByte = 0;
+  byte     m_previousReadByte = 0;
   bool     m_runningStatusPossible=false;
   uint8_t  m_channelVoiceMsgFilterMask = noChannelVoiceMsgMsk;
   uint8_t  m_systemCommonMsgFilterMask = noSystemCommonMsgMsk;
@@ -159,6 +161,8 @@ class midiXparser {
     ~midiXparser();
 
     // Methods
+    bool        isSysExMode() ;
+    bool        isSysExError();
     bool        isByteCaptured() ;
     uint8_t     getMidiMsgType() ;
     uint8_t     getMidiStatusMsgType(uint8_t midiStatus) ;
@@ -167,6 +171,7 @@ class midiXparser {
     uint8_t *   getMidiMsg();
     uint8_t *   getSysExMsg();
     byte        getByte() ;
+    byte        getPreviousByte() ;
     unsigned    getSysExMsgLen() ;
     void        setMidiChannelFilter(uint8_t midiChannelFilter);
     void        setChannelVoiceMsgFilter(uint8_t channelVoiceMsgFilterMask);

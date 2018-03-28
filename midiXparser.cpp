@@ -1,5 +1,4 @@
 /*
-
   midXparser
   A small footprint midi parser.
   Copyright (C) 2017/2018 by The KikGen labs.
@@ -56,7 +55,7 @@ midiXparser::midiXparser() {
 
 };
 
-// Contructor with passing channel voice filter mask
+// Constructor with passing channel voice filter mask
 midiXparser::midiXparser(uint8_t  channelVoiceMsgFilterMask) {
      setChannelVoiceMsgFilter(channelVoiceMsgFilterMask);
 };
@@ -71,6 +70,12 @@ midiXparser::midiXparser(uint8_t  channelVoiceMsgFilterMask,uint8_t  midiChannel
 midiXparser::~midiXparser() {
   setSysExFilter(false);
 }
+
+// Give the current sysex state, even if not filtering bytes
+bool midiXparser::isSysExMode() { return m_sysExMode ;}
+
+// Give the status of the last SYSEX transmission.
+bool midiXparser::isSysExError() { return m_sysExError ;}
 
 // Used to check if the last byte parsed was captured
 bool midiXparser::isByteCaptured() { return m_isByteCaptured; }
@@ -122,7 +127,6 @@ uint8_t * midiXparser::getMidiMsg() {
       case sysExMsgType:
         return m_sysExBuffer;
         break;
-
     }
 
    return m_midiMsg ;
@@ -133,6 +137,10 @@ uint8_t * midiXparser::getSysExMsg() { return m_sysExBuffer; };
 
 // Get the last byte parsed
 byte midiXparser::getByte() { return m_readByte ;}
+
+// Get the previous byte parsed.
+// 2 parse method calls at a minimum
+byte midiXparser::getPreviousByte() { return m_previousReadByte ;}
 
 // Set filter for Midi Channel
 void midiXparser::setMidiChannelFilter(uint8_t midiChannelFilter) {
@@ -173,15 +181,20 @@ void midiXparser::setMidiMsgFilter(allNoValues value) {
 
 }
 
+//////////////////////////////////////////////////////////////////////////////
 // Allocate a sysex buffer and start listening msg
+//----------------------------------------------------------------------------
 // If sysExFilterToggle is false, the memory is released.
 // This function uses dynamic memory allocation, so the DESTRUCTOR
 // must clean everything.
+// If the size is 0,then the sysex parsing will not store Bytes.
+// That allows parsing on the fly without the memory limitation constraint,
+// but will not return true on parsing, so you must use isByteCaptured().
+//////////////////////////////////////////////////////////////////////////////
 bool midiXparser::setSysExFilter(bool sysExFilterToggle,int sysExBufferSize) {
 
     if ( sysExFilterToggle ) {
-      if (sysExBufferSize <= 0) return false ;
-
+      if (sysExBufferSize <0 ) return false ;
 
       // Already allocated. Free buffer.
       if ( m_sysExBuffer!= NULL && m_sysExFilterToggle  ) {
@@ -190,6 +203,13 @@ bool midiXparser::setSysExFilter(bool sysExFilterToggle,int sysExBufferSize) {
         m_sysExBufferIndex=0;
         m_sysExBuffer = NULL;
         m_sysExFilterToggle = false;
+      }
+
+      // On the fly mode
+      if (sysExBufferSize == 0 ) {
+        m_sysExBufferSize = sysExBufferSize ;
+        m_sysExFilterToggle = true;
+        return true ;
       }
 
       // (re)Allocate the buffer
@@ -216,20 +236,23 @@ bool midiXparser::setSysExFilter(bool sysExFilterToggle,int sysExBufferSize) {
     return false;
 
 }
-////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
 // midiXParser MIDI PARSER
-//-----------------------------------------------
+//----------------------------------------------------------------------------
 // The main method.
-// It parses midi byte per byte and return true
-// if a message is matching filters.
-// Set also the byte capture flag
-////////////////////////////////////////////////
+// It parses midi byte per byte and return true if a message is matching filters.
+// Set also the byte capture flag if a byte belong to a filtered message.
+//////////////////////////////////////////////////////////////////////////////
 bool midiXparser::parse(byte readByte) {
 
     // Store the passed byte so it can be sent back to serial
     // if not captured
+    m_previousReadByte = m_readByte ;
     m_readByte = readByte;
     m_isByteCaptured=false;
+
+    // Clear any previous sysex error
+    if (m_sysExError) m_sysExError = false;
 
     // MIDI Message status are starting at 0x80
     if ( readByte >= 0x80 )
@@ -252,8 +275,29 @@ bool midiXparser::parse(byte readByte) {
        m_midiCurrentMsgType = noneMsgType;
        m_nextMidiMsglen = 0;
 
-       // Start SYSEX ? ------------------------------------------------------------
-       if ( !m_sysExMode && readByte == soxStatus ) {
+       // Start SYSEX ---------------------------------------------------------
+
+       // Clean end of Sysex.
+       // Sysex can be terminated abnormally also by another status
+       if (m_sysExMode && readByte == eoxStatus ) {
+               m_sysExMode = false;
+               m_sysExError = false;
+               m_midiParsedMsgType = sysExMsgType;
+               m_isByteCaptured = m_sysExFilterToggle;
+               return (m_sysExFilterToggle && m_sysExBufferIndex > 0);
+       }
+
+       // SysEx can be terminated abonrmally with a midi status.
+       // In that case, the SYSEX msg will be dropped to proceed the midi command.
+       // The message is still buffered. m_sysExError is set to true for this round.
+
+       if (m_sysExMode ) {
+              m_sysExMode = false;
+              m_sysExError = true;
+       }
+
+       // Start SYSEX
+       if ( readByte == soxStatus ) {
               m_sysExMode = true;
               m_sysExBufferIndex = 0;
               m_midiCurrentMsgType = sysExMsgType;
@@ -261,28 +305,14 @@ bool midiXparser::parse(byte readByte) {
               return false;
        }
 
-      // Clean end of Sysex.
-      // Sysex can be terminated also by another status
-      if (m_sysExMode && readByte == eoxStatus ) {
-              m_sysExMode = false;
-              m_midiParsedMsgType = sysExMsgType;
-              m_isByteCaptured = m_sysExFilterToggle;
-              return (m_sysExFilterToggle && m_sysExBufferIndex > 0);
-      }
-
       // Channel messages between 0x80 and 0xEF ------------------------------------
       if ( readByte <= 0xEF ) {
-
 
           m_midiCurrentMsgType = channelVoiceMsgType;
 
           // Midi channel filter
           if ( m_midiChannelFilter != allChannel &&
                    (readByte & 0x0F) != m_midiChannelFilter ) {
-                   if (m_sysExMode) {
-                      m_sysExMode = false;
-                      return m_sysExFilterToggle;
-                   }
                    return false;
           }
 
@@ -301,24 +331,12 @@ bool midiXparser::parse(byte readByte) {
         m_nextMidiMsglen = getMidiStatusMsgLen(readByte);
         m_midiMsg[0] = readByte;
         m_nextMidiMsglen--;
-      }
 
-      // SysEx can be terminated with a midi status. Not a clean end of Sysex.
-      // If the len of the current midi message is only 1 byte (eg Tune request), the arbitration will
-      // go to the midi sysex instead of the tune request. So, we "consume" the event here.
-      // This is the only case.
-      if (m_sysExMode ) {
-              m_sysExMode = false;
-              if ( m_sysExBufferIndex > 0 ) {
-                m_midiParsedMsgType = sysExMsgType;
-                return true;
-              }
-      }
-
-      // Case of 1 byte len midi msg (Tune request)
-      if ( m_nextMidiMsglen == 0 && m_isByteCaptured) {
+        // Case of 1 byte len midi msg (Tune request)
+        if ( m_nextMidiMsglen == 0 ) {
           m_midiParsedMsgType = m_midiCurrentMsgType;
           return true;
+        }
       }
 
     }
@@ -327,11 +345,16 @@ bool midiXparser::parse(byte readByte) {
     else {
 
           // Capture the SYSEX message if filter is set
+          // If m_sysExBufferSize is 0, do not store
           if (m_sysExMode ) {
               if (m_sysExFilterToggle) {
+                  if (m_sysExBufferSize == 0 ) m_isByteCaptured = true;
+                  else
                   // Check overflow of the sysex buffer
-                  if ( m_sysExBufferIndex == m_sysExBufferSize)
-                      m_sysExMode = false;
+                  if ( m_sysExBufferIndex == m_sysExBufferSize) {
+                        m_sysExError = true;
+                        m_sysExMode = false;
+                  }
                   else {
                       m_sysExBuffer[m_sysExBufferIndex++] =   readByte ;
                       m_isByteCaptured = true;
