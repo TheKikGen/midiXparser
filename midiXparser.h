@@ -37,7 +37,7 @@
 #include <inttypes.h>
 typedef uint8_t byte;
 #endif
-
+#include <stdlib.h>
 
 class midiXparser {
   uint8_t  m_midiMsg[3];
@@ -83,43 +83,43 @@ class midiXparser {
 
     // Bits 6 to 0 map status 8n 9n An Bn Cn Dn En
     enum channelVoiceMsgFilterMaskValue {
-        noteOffMsk            = B10000000,
-        noteOnMsk             = B01000000,
-        polyKeyPressureMsk    = B00100000,
-        controlChangeMsk      = B00010000,
-        programChangeMsk      = B00001000,
-        channelPressureMsk    = B00000100,
-        pitchBendMsk          = B00000010,
-        allChannelVoiceMsgMsk = B11111110,
-        noChannelVoiceMsgMsk  = B00000000,
+        noteOffMsk            = 0B10000000,
+        noteOnMsk             = 0B01000000,
+        polyKeyPressureMsk    = 0B00100000,
+        controlChangeMsk      = 0B00010000,
+        programChangeMsk      = 0B00001000,
+        channelPressureMsk    = 0B00000100,
+        pitchBendMsk          = 0B00000010,
+        allChannelVoiceMsgMsk = 0B11111110,
+        noChannelVoiceMsgMsk  = 0B00000000,
     };
 
     // Bits 7 to 0 map realtime F8 to FF
     enum realTimeMsgFilterMaskValue {
-        timingClockMsk      = B10000000,
-        //reserved3Msk      = B01000000,
-        startMsk            = B00100000,
-        continueMsk         = B00010000,
-        stopMsk             = B00001000,
-        //reserved4Msk      = B00000100,
-        activeSensingMsk    = B00000010,
-        systemResetMsk      = B00000001,
-        allRealTimeMsgMsk   = B10111011,
-        noRealTimeMsgMsk    = B00000000
+        timingClockMsk      = 0B10000000,
+        //reserved3Msk      = 0B01000000,
+        startMsk            = 0B00100000,
+        continueMsk         = 0B00010000,
+        stopMsk             = 0B00001000,
+        //reserved4Msk      = 0B00000100,
+        activeSensingMsk    = 0B00000010,
+        systemResetMsk      = 0B00000001,
+        allRealTimeMsgMsk   = 0B10111011,
+        noRealTimeMsgMsk    = 0B00000000
     };
 
     // Bits 7 to 0 map realtime (F0) to (F7)
     enum systemCommonMsgFilterMaskValue {
-        //soxMsk              = B10000000,
-        midiTimeCodeMsk       = B01000000,
-        songPosPointerMsk     = B00100000,
-        songSelectMsk         = B00010000,
-        //reserved1Status     = B00001000,
-        //reserved2Status     = B00000100,
-        tuneRequestMsk        = B00000010,
-        //eoxStatus           = B00000001,
-        allSystemCommonMsgMsk = B01110010,
-        noSystemCommonMsgMsk  = B00000000
+        //soxMsk              = 0B10000000,
+        midiTimeCodeMsk       = 0B01000000,
+        songPosPointerMsk     = 0B00100000,
+        songSelectMsk         = 0B00010000,
+        //reserved1Status     = 0B00001000,
+        //reserved2Status     = 0B00000100,
+        tuneRequestMsk        = 0B00000010,
+        //eoxStatus           = 0B00000001,
+        allSystemCommonMsgMsk = 0B01110010,
+        noSystemCommonMsgMsk  = 0B00000000
     };
 
 
