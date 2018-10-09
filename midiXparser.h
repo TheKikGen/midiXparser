@@ -68,11 +68,11 @@ class midiXparser {
   public:
     // Midi messages type
     enum midiMsgType {
-        noneMsgType = 0,
-        channelVoiceMsgType = 1,
-        systemCommonMsgType = 2,
-        realTimeMsgType = 3,
-        sysExMsgType = 4
+        noneMsgType = 0B0000,
+        channelVoiceMsgType = 0B0001,
+        systemCommonMsgType = 0B0010,
+        realTimeMsgType = 0B0100,
+        sysExMsgType = 0B1000
     };
 
     enum allNoValues {
