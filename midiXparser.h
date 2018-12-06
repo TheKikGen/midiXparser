@@ -60,8 +60,8 @@ class midiXparser {
   static const  uint8_t m_channelVoiceMsgMsglen[7];
 
   uint8_t* m_sysExBuffer = NULL;
-  int      m_sysExBufferSize = -1;
-  unsigned m_sysExBufferIndex=0;
+  unsigned m_sysExBufferSize  = 0;
+  unsigned m_sysExBufferIndex = 0;
   bool     m_sysExFilterToggle = false;
 
 
@@ -179,7 +179,7 @@ class midiXparser {
     void        setRealTimeMsgFilter(uint8_t realTimeMsgFilterMask);
     void        setMidiMsgFilter(allNoValues value);
 
-    bool        setSysExFilter(bool sysExFilterToggle,int sysExBufferSize=-1);
+    bool        setSysExFilter(bool sysExFilterToggle,unsigned sysExBufferSize=0);
 
     bool        parse(byte readByte);
 

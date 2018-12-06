@@ -187,53 +187,36 @@ void midiXparser::setMidiMsgFilter(allNoValues value) {
 // If sysExFilterToggle is false, the memory is released.
 // This function uses dynamic memory allocation, so the DESTRUCTOR
 // must clean everything.
-// If the size is 0,then the sysex parsing will not store Bytes.
+// If the size is 0 (default),then the sysex parsing will not store Bytes.
 // That allows parsing on the fly without the memory limitation constraint,
 // but will not return true on parsing, so you must use isByteCaptured().
 //////////////////////////////////////////////////////////////////////////////
-bool midiXparser::setSysExFilter(bool sysExFilterToggle,int sysExBufferSize) {
+bool midiXparser::setSysExFilter(bool sysExFilterToggle,unsigned sysExBufferSize) {
+
+    // Already allocated. Free buffer.
+    if ( m_sysExBuffer!= NULL) free(m_sysExBuffer);
+
+    m_sysExBufferSize  = sysExBufferSize ;
+    m_sysExBufferIndex = 0 ;
+    m_sysExFilterToggle = sysExFilterToggle;
+    m_sysExBuffer = NULL ;
 
     if ( sysExFilterToggle ) {
-      if (sysExBufferSize <0 ) return false ;
-
-      // Already allocated. Free buffer.
-      if ( m_sysExBuffer!= NULL && m_sysExFilterToggle  ) {
-        free(m_sysExBuffer);
-        m_sysExBufferSize = 0;
-        m_sysExBufferIndex=0;
-        m_sysExBuffer = NULL;
-        m_sysExFilterToggle = false;
-      }
-
       // On the fly mode
-      if (sysExBufferSize == 0 ) {
-        m_sysExBufferSize = sysExBufferSize ;
-        m_sysExFilterToggle = true;
-        return true ;
-      }
+      if (sysExBufferSize == 0 ) return true ;
 
       // (re)Allocate the buffer
       m_sysExBuffer = (uint8_t *)calloc ( sysExBufferSize , sizeof(uint8_t) );
-      if ( m_sysExBuffer != NULL ) {
-           m_sysExBufferSize = sysExBufferSize ;
-           m_sysExBufferIndex=0;
-           m_sysExFilterToggle = true;
-           return true;
-      }
-    }
-    else
-
-    // if an array was already allocated, free it
-    if ( m_sysExBuffer!= NULL && m_sysExFilterToggle  ) {
-        free(m_sysExBuffer);
-        m_sysExBuffer = NULL;
-        m_sysExBufferSize = 0;
-        m_sysExBufferIndex=0;
-        m_sysExFilterToggle = false;
-        return true;
-    }
-
-    return false;
+      if ( m_sysExBuffer != NULL ) return true;
+      else {
+           // Allocation error. Disable SYSEX filter.
+           m_sysExBufferSize  = 0 ;
+           m_sysExFilterToggle = false;
+           return false;
+       }
+    } else m_sysExBufferSize = 0;
+ 
+    return true;
 
 }
 //////////////////////////////////////////////////////////////////////////////
@@ -348,7 +331,7 @@ bool midiXparser::parse(byte readByte) {
           // If m_sysExBufferSize is 0, do not store
           if (m_sysExMode ) {
               if (m_sysExFilterToggle) {
-                  if (m_sysExBufferSize == 0 ) m_isByteCaptured = true;
+                  if (m_sysExBufferSize == 0 ) m_isByteCaptured = true; // On the fly
                   else
                   // Check overflow of the sysex buffer
                   if ( m_sysExBufferIndex == m_sysExBufferSize) {

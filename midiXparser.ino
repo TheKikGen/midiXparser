@@ -62,8 +62,8 @@ static  uint8_t dummyMsg2[] = {
 
 static  uint8_t dummyMsg3[] = {
 
-  0xF0,0x77,0x77,0x78,0xF8,0x40,0x41,0xF7,
-  0xF0,0x41,0x77,0x78,0xF8,0x40,0x41,0xF7,
+  0xF0,0x77,0x77,0x78,0xF8,0x40,0x41,0x42,0x43,0xF7,
+  0xF0,0x41,0x77,0x78,0xF8,0x40,0xF7,
   0xF0,0x77,0x77,0x77,0xF8,0x0,0x1,0x2,0xF8,0X44,0xF7,
   0xF0,0x77,0x77,0x77,0xF8,0x0,0x1,0x2,0xF8,
   0x80,0x50,0x40,
@@ -211,7 +211,7 @@ void test70() {
 
 void test71() {
   midiXparser midiParser;
-  midiParser.setSysExFilter(true,0);
+  midiParser.setSysExFilter(true);
   midiParser.setMidiMsgFilter( midiXparser::allMidiMsg );
   serializer1("TEST 71","SYSEX Not storing - on the fly mode",&midiParser,dummyMsg3,sizeof( dummyMsg3) );
 }
@@ -225,8 +225,8 @@ void test72() {
 
 void test80() {
   midiXparser midiParser;
-  midiParser.setSysExFilter(true,6);
-  serializer1("TEST 1I","SYSEX Size = 6",&midiParser,dummyMsg3,sizeof( dummyMsg3) );
+  midiParser.setSysExFilter(true,4);
+  serializer1("TEST 1I","SYSEX OVERFLOW Size = 4",&midiParser,dummyMsg3,sizeof( dummyMsg3) );
 }
 
 void test90() {
@@ -251,12 +251,21 @@ void test90b() {
   int startMem = freeMemory();
   Serial.print("START Free Memory                          : ") ; Serial.println(startMem);
 
-  midiParser.setSysExFilter(true,128);
-  Serial.print("Free Memory after setSysExFilter(true,128) : ") ; Serial.println(freeMemory());
+  // On the fly
+  midiParser.setSysExFilter(true);
+  Serial.print("Free Memory after setSysExFilter(true) : ") ; Serial.println(freeMemory());
 
   midiParser.setSysExFilter(false);
   Serial.print("Free Memory after setSysExFilter(false)    : ") ; Serial.println(freeMemory());
-
+  
+  // Allocate
+  midiParser.setSysExFilter(true,128);
+  Serial.print("Free Memory after setSysExFilter(true,128) : ") ; Serial.println(freeMemory());
+  // DeAllocate
+  midiParser.setSysExFilter(false);
+  Serial.print("Free Memory after setSysExFilter(false)    : ") ; Serial.println(freeMemory());
+  
+  // ReAllocate
   midiParser.setSysExFilter(true,32);
   Serial.print("Free Memory after setSysExFilter(true,32) : ") ; Serial.println(freeMemory());
 
@@ -266,8 +275,18 @@ void test90b() {
   midiParser.setSysExFilter(false);
   Serial.print("Free Memory after setSysExFilter(false)    : ") ; Serial.println(freeMemory());
 
-  Serial.print("END - START Memory gap                     : ") ; Serial.println(startMem - freeMemory());
+  // Change to "On the fly" mode
+  midiParser.setSysExFilter(true,32);
+  Serial.print("Free Memory after setSysExFilter(true,32) : ") ; Serial.println(freeMemory());
 
+  midiParser.setSysExFilter(true);
+  Serial.print("Free Memory after setSysExFilter(true) : ") ; Serial.println(freeMemory());
+
+  midiParser.setSysExFilter(false);
+  Serial.print("Free Memory after setSysExFilter(false)    : ") ; Serial.println(freeMemory());
+  
+  Serial.print("END - START Memory gap                     : ") ; Serial.println(startMem - freeMemory());
+  
   midiParser.setSysExFilter(true,48);
   Serial.print("Test destructor - setSysExFilter(true,48) : ") ; Serial.println(freeMemory());
 
@@ -449,16 +468,16 @@ void testUsbSysEx() {
 void setup() {
 
   Serial.begin(115200);
-  testUsbSysEx();
+//  testUsbSysEx();
   //test15();
-  //test90();
 //  test10();  test11();   test12(); test13();test14();  test20();  test30();  test40();   test50();
 //  test60();
-//  test70();
-//  test71();
-//  test72() ;
-//  test80();
-
+  test70();
+  test71();
+  test72() ;
+  test80();
+  test90();
+    //test90b();
 
 }
 
