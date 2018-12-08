@@ -46,6 +46,7 @@ class midiXparser {
   bool     m_sysExMode = false;
   bool     m_sysExError = false;
   bool     m_isByteCaptured=false;
+  bool     m_isMsgReady=false;
   byte     m_readByte = 0;
   byte     m_previousReadByte = 0;
   bool     m_runningStatusPossible=false;

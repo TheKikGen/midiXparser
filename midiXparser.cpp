@@ -215,7 +215,7 @@ bool midiXparser::setSysExFilter(bool sysExFilterToggle,unsigned sysExBufferSize
            return false;
        }
     } else m_sysExBufferSize = 0;
- 
+
     return true;
 
 }
@@ -248,7 +248,8 @@ bool midiXparser::parse(byte readByte) {
               m_midiParsedMsgType = realTimeMsgType;
               m_midiMsgRealTime[0] = readByte;
             }
-            return m_isByteCaptured;
+            m_isMsgReady = m_isByteCaptured;
+            return m_isMsgReady;
        }
 
        // Running status not possible at this point
@@ -267,7 +268,8 @@ bool midiXparser::parse(byte readByte) {
                m_sysExError = false;
                m_midiParsedMsgType = sysExMsgType;
                m_isByteCaptured = m_sysExFilterToggle;
-               return (m_sysExFilterToggle && m_sysExBufferIndex > 0);
+               m_isMsgReady = (m_sysExFilterToggle && m_sysExBufferIndex > 0);
+               return m_isMsgReady;
        }
 
        // SysEx can be terminated abonrmally with a midi status.
@@ -285,7 +287,8 @@ bool midiXparser::parse(byte readByte) {
               m_sysExBufferIndex = 0;
               m_midiCurrentMsgType = sysExMsgType;
               m_isByteCaptured = m_sysExFilterToggle;
-              return false;
+              m_isMsgReady = false;
+              return m_isMsgReady;
        }
 
       // Channel messages between 0x80 and 0xEF ------------------------------------
@@ -296,7 +299,8 @@ bool midiXparser::parse(byte readByte) {
           // Midi channel filter
           if ( m_midiChannelFilter != allChannel &&
                    (readByte & 0x0F) != m_midiChannelFilter ) {
-                   return false;
+                   m_isMsgReady = false;
+                   return m_isMsgReady;
           }
 
           // Apply message channel filter mask
@@ -318,7 +322,8 @@ bool midiXparser::parse(byte readByte) {
         // Case of 1 byte len midi msg (Tune request)
         if ( m_nextMidiMsglen == 0 ) {
           m_midiParsedMsgType = m_midiCurrentMsgType;
-          return true;
+          m_isMsgReady = true;
+          return m_isMsgReady;
         }
       }
 
@@ -343,7 +348,8 @@ bool midiXparser::parse(byte readByte) {
                       m_isByteCaptured = true;
                   }
               } // Toggle
-              return false;
+              m_isMsgReady = false;
+              return m_isMsgReady;
           }
 
           // "Pure" midi message data
@@ -369,7 +375,8 @@ bool midiXparser::parse(byte readByte) {
                 if (m_midiParsedMsgType == channelVoiceMsgType) {
                   m_runningStatusPossible = true;
                 }
-                return true;
+                m_isMsgReady = true;
+                return m_isMsgReady;
             }
           }
 
@@ -377,8 +384,9 @@ bool midiXparser::parse(byte readByte) {
 
      // All other data here are purely ignored.
      // In respect of the MIDI specifications.
+     m_isMsgReady = false;
 
-    return false;
+    return m_isMsgReady;
 }
 
 /////////////////////////////////////////////////
