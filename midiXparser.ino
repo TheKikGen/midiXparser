@@ -105,6 +105,16 @@ static  uint8_t dummyUsb[] = {
 };
 
 
+// Program change issue
+static  uint8_t dummyPCIssue[] = {
+  0xB0, 0x34,  0x44,
+  0xC0, 0x20,
+  0x90, 0x3A,  0x77,
+  0xC0, 0x21,
+  0x90, 0x3A,  0x77,
+  0xD0, 0x40,
+  0x80, 0x3A,  0x77,
+};
 
 extern unsigned int __bss_end;
 extern unsigned int __heap_start;
@@ -127,6 +137,8 @@ void test10() {
   midiXparser midiParser;
   serializer1("TEST 10","default ",&midiParser,dummyMsg1,sizeof( dummyMsg1) );
 }
+
+
 
 void test11() {
   midiXparser midiParser;
@@ -162,6 +174,15 @@ void test15() {
   midiParser.setMidiChannelFilter(midiXparser::allChannel);
   midiParser.setChannelVoiceMsgFilter(midiXparser::controlChangeMsk );
   serializer1("TEST 15","CChange - All channels - Running status",&midiParser,dummyMsg4,sizeof( dummyMsg4));
+}
+
+void test16() {
+
+  midiXparser midiParser;
+  midiParser.setMidiChannelFilter(midiXparser::allChannel);
+  midiParser.setMidiMsgFilter( midiXparser::allMidiMsg );
+
+  serializer1("TEST 10","PC ISSUE",&midiParser,dummyPCIssue,sizeof( dummyPCIssue) );
 }
 
 
@@ -469,15 +490,11 @@ void setup() {
 
   Serial.begin(115200);
 //  testUsbSysEx();
-  //test15();
+ //test15();
+  test16();
 //  test10();  test11();   test12(); test13();test14();  test20();  test30();  test40();   test50();
 //  test60();
-  test70();
-  test71();
-  test72() ;
-  test80();
-  test90();
-    //test90b();
+  //test70();   test71();   test72() ;   test80();  test90(); test90b();
 
 }
 

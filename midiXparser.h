@@ -43,6 +43,7 @@ class midiXparser {
   uint8_t  m_midiMsg[3];
   uint8_t  m_midiMsgRealTime[1]; // Used for real time only
   uint8_t  m_nextMidiMsglen = 0;
+  uint8_t  m_expectedMsgLen = 0;
   bool     m_sysExMode = false;
   bool     m_sysExError = false;
   bool     m_isByteCaptured=false;

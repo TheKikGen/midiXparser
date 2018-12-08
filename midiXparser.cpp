@@ -258,6 +258,7 @@ bool midiXparser::parse(byte readByte) {
        // Reset current msg type and msg len
        m_midiCurrentMsgType = noneMsgType;
        m_nextMidiMsglen = 0;
+       m_expectedMsgLen = 0;
 
        // Start SYSEX ---------------------------------------------------------
 
@@ -315,12 +316,13 @@ bool midiXparser::parse(byte readByte) {
 
       if (m_isByteCaptured) {
         // get the len of the midi msg to parse
-        m_nextMidiMsglen = getMidiStatusMsgLen(readByte);
+        m_expectedMsgLen = getMidiStatusMsgLen(readByte);
+        m_nextMidiMsglen = m_expectedMsgLen ;
         m_midiMsg[0] = readByte;
         m_nextMidiMsglen--;
 
         // Case of 1 byte len midi msg (Tune request)
-        if ( m_nextMidiMsglen == 0 ) {
+        if ( m_expectedMsgLen == 1 ) {
           m_midiParsedMsgType = m_midiCurrentMsgType;
           m_isMsgReady = true;
           return m_isMsgReady;
@@ -364,7 +366,7 @@ bool midiXparser::parse(byte readByte) {
           // Len was set only if filters matched before
           if ( m_nextMidiMsglen ) {
 
-            m_midiMsg[3-m_nextMidiMsglen] = readByte;
+            m_midiMsg[m_expectedMsgLen-m_nextMidiMsglen] = readByte;
             m_nextMidiMsglen--;
             m_isByteCaptured = true;
 
