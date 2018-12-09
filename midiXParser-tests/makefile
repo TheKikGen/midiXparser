@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 CXX = g++
+=======
+XX = g++
+>>>>>>> 86af314095ba28d3079c2ab310b1e9387f0fdb54
 CXXFLAGS = -Wall -g -std=gnu++11
 
 SRCS =  test-mxp.cpp ../midiXparser.cpp
