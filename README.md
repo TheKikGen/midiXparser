@@ -66,31 +66,42 @@ The demo sketch contains many tests to validate midiXparser features you can use
 ### Methods
 
 #### bool parse(byte readByte)
+    Parse a byte and return true if a complete midi message was detected, according to the filters set.
+    This method is also used fro sysex if they are buffered.
 
-    Parse a byte and return true if a midi message was detected, according to the filters set.
+#### uint8_t *getMidiMsg()
+    Get a pointer on the parsed midi message.
+
+#### uint8_t *getSysExMsg()
+    Get a pointer on the sysex parsed message.  The parsed message contains only data, and never
+    0XF0 (SOX) at the beginning, and 0XF7 (EOX) at the end.
 
 #### uint8_t getMidiMsgLen()
-
-    Return the length of the last parsed message (value varies from 1 to 255).
+    Return the length of the last parsed message (value varies from 0 to 3).
     Return 0 if the parse method does not return true at the last call.    
-    
-#### bool isSysExMode()
+      
+#### unsigned getSysExMsgLen() ;
+    Return the length of a complete sysex message, whithout SOX and EOX.
 
-    Return true if the last call to the parse method has entering in system exclusive mode.  
+#### byte getByte()
+    Return the last byte parsed.
+
+#### byte getPreviousByte()
+    Return the previous byte parsed.
+
+#### bool isSysExMode()
+    Return true if the last call to the parse method has entering into system exclusive mode.  
     This method can be used in combination with the IsByteCaptured method to process sysex flows
     on the fly, without buffering.    
 
 #### bool isSysExError()
-
     Return true if the last call to the parse method has detected an abnormal end of sysex,
-    generally no 0xF7 end of sysex (EOX) byte.
+    generally no EOX byte.
   
-#### bool isByteCaptured()
-    
+#### bool isByteCaptured()  
     Return true if the last byte parsed was kept to prepare a midi message.
 
 #### uint8_t getMidiMsgType()
-
     Return the type of the last parsed midi message. 
     
     Types are defined by the following enumeration :
@@ -100,8 +111,7 @@ The demo sketch contains many tests to validate midiXparser features you can use
     . midiXparser::realTimeMsgType
     . midiXparser::sysExMsgType
     
-#### uint8_t getMidiStatusMsgType(uint8_t midiStatus)
-    
+#### uint8_t getMidiStatusMsgLen(uint8_t midiStatus)
     Return the standard length of a midi status. Midi status are defined 
     by the following enumaration :
     
@@ -133,22 +143,31 @@ The demo sketch contains many tests to validate midiXparser features you can use
      . midiXparser::reserved4Status
      . midiXparser::activeSensingStatus
      . midiXparser::systemResetStatus
-    
 
-    uint8_t     getMidiStatusMsgLen(uint8_t midiStatus);
-    uint8_t *   getMidiMsg();
-    uint8_t *   getSysExMsg();
-    byte        getByte() ;
-    byte        getPreviousByte() ;
-    unsigned    getSysExMsgLen() ;
-    void        setMidiChannelFilter(uint8_t midiChannelFilter);
-    void        setChannelVoiceMsgFilter(uint8_t channelVoiceMsgFilterMask);
-    void        setSystemCommonMsgFilter(uint8_t systemCommonMsgFilterMask);
-    void        setRealTimeMsgFilter(uint8_t realTimeMsgFilterMask);
-    void        setMidiMsgFilter(allNoValues value);
+#### uint8_t getMidiStatusMsgType(uint8_t midiStatus)    
+    . Return the msg type of a midi status (see also getMidiMsgType)
+ 
+#### void setMidiChannelFilter(uint8_t midiChannelFilter)
+    TODO
 
-    bool        setSysExFilter(bool sysExFilterToggle,unsigned sysExBufferSize=0);
+#### void setChannelVoiceMsgFilter(uint8_t channelVoiceMsgFilterMask)
+    TODO
 
-    bool        parse(byte readByte);
+#### void setSystemCommonMsgFilter(uint8_t systemCommonMsgFilterMask)
+    TODO
 
+#### void setRealTimeMsgFilter(uint8_t realTimeMsgFilterMask)
+    TODO
+
+#### void setMidiMsgFilter(allNoValues value)
+    TODO
+
+#### bool setSysExFilter(bool sysExFilterToggle,unsigned sysExBufferSize=0)
+    TODO
+
+#### (static) unsigned encodeSysEx(const byte* inData, byte* outSysEx, unsigned inLength,bool fromMsbToLsb=true)
+    TODO
+
+#### (static) unsigned decodeSysEx(const byte* inSysEx, byte* outData, unsigned inLength,bool fromMsbToLsb=true)
+    TODO
 
