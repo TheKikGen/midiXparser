@@ -67,7 +67,7 @@ The demo sketch contains many tests to validate midiXparser features you can use
 
 #### bool parse(byte readByte)
     Parse a byte and return true if a complete midi message was detected, according to the filters set.
-    This method is also used fro sysex if they are buffered.
+    This method is also used for sysex if they are buffered with setSysExFilter.
 
 #### uint8_t *getMidiMsg()
     Get a pointer on the parsed midi message.
