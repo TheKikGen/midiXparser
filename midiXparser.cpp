@@ -84,32 +84,33 @@ bool midiXparser::isByteCaptured() { return m_isByteCaptured; }
 uint8_t  midiXparser::getMidiMsgType() { return m_midiParsedMsgType; }
 
 // Return the type of a midi status (cf enum)
-uint8_t  midiXparser::getMidiStatusMsgType(uint8_t midiStatus) {
+uint8_t  midiXparser::getMidiStatusMsgTypeMsk(uint8_t midiStatus) {
 
-  if (midiStatus >= 0xF8 ) return realTimeMsgType;
-  if (midiStatus >= 0xF0 ) return systemCommonMsgType;
-  if (midiStatus >= 0x80 ) return channelVoiceMsgType;
+  if (midiStatus >= 0xF8 ) return realTimeMsgTypeMsk;
+  if (midiStatus == 0XF7 || midiStatus == 0xF0 ) return sysExMsgTypeMsk;
+  if (midiStatus >= 0xF0 ) return systemCommonMsgTypeMsk;
+  if (midiStatus >= 0x80 ) return channelVoiceMsgTypeMsk;
 
-  return noneMsgType ;
+  return noneMsgTypeMsk ;
 }
 
 // Return the len of the last parsed midi message, including sysex
 uint8_t  midiXparser::getMidiMsgLen() {
-  if (m_midiParsedMsgType == sysExMsgType )         return m_sysExBufferIndex ;
-  if (m_midiParsedMsgType == realTimeMsgType )      return 1 ;
-  if (m_midiParsedMsgType == channelVoiceMsgType )  return m_channelVoiceMsgMsglen[ (getMidiMsg()[0] >> 4) - 8 ] ;
-  if (m_midiParsedMsgType == systemCommonMsgType )  return m_systemCommonMsglen[getMidiMsg()[0] & 0x0F] ;
+  if (m_midiParsedMsgType == sysExMsgTypeMsk )         return getSysExMsgLen() ;
+  if (m_midiParsedMsgType == realTimeMsgTypeMsk )      return 1 ;
+  if (m_midiParsedMsgType == channelVoiceMsgTypeMsk )  return m_channelVoiceMsgMsglen[ (getMidiMsg()[0] >> 4) - 8 ] ;
+  if (m_midiParsedMsgType == systemCommonMsgTypeMsk )  return m_systemCommonMsglen[getMidiMsg()[0] & 0x0F] ;
 
   return 0;
 }
 
 // Return the len of a midistatus message (cf enum)
-uint8_t midiXparser::getMidiStatusMsgLen(uint8_t midiStatus) {
+// Nb: SOX or EOX return always 0.
 
+uint8_t midiXparser::getMidiStatusMsgLen(uint8_t midiStatus) {
   if (midiStatus >= 0xF8 ) return 1;
   if (midiStatus >= 0xF0 ) return m_systemCommonMsglen[midiStatus & 0x0F];
   if (midiStatus >= 0x80 ) return m_channelVoiceMsgMsglen[ (midiStatus >> 4) - 8 ];
-
   return 0 ;
 }
 
@@ -117,14 +118,14 @@ uint8_t midiXparser::getMidiStatusMsgLen(uint8_t midiStatus) {
 // This persists until the next sysex.
 unsigned midiXparser::getSysExMsgLen() { return m_sysExBufferIndex ;}
 
+// Return the parsed message buffered
 uint8_t * midiXparser::getMidiMsg() {
 
     switch (m_midiParsedMsgType) {
-
-      case realTimeMsgType:
+      case realTimeMsgTypeMsk:
         return m_midiMsgRealTime;
         break;
-      case sysExMsgType:
+      case sysExMsgTypeMsk:
         return m_sysExBuffer;
         break;
     }
@@ -142,7 +143,7 @@ byte midiXparser::getByte() { return m_readByte ;}
 // 2 parse method calls at a minimum
 byte midiXparser::getPreviousByte() { return m_previousReadByte ;}
 
-// Set filter for Midi Channel
+// Set filter for Midi Channel 0 to F
 void midiXparser::setMidiChannelFilter(uint8_t midiChannelFilter) {
       m_midiChannelFilter = midiChannelFilter;
 }
@@ -150,34 +151,58 @@ void midiXparser::setMidiChannelFilter(uint8_t midiChannelFilter) {
 // Set filter mask for channel voice Msg
 void midiXparser::setChannelVoiceMsgFilter(uint8_t channelVoiceMsgFilterMask) {
       m_channelVoiceMsgFilterMask = channelVoiceMsgFilterMask;
+      if ( channelVoiceMsgFilterMask != noChannelVoiceMsgMsk)
+          m_midiMsgTypeFilterMsk |= channelVoiceMsgTypeMsk;
+      else
+          m_midiMsgTypeFilterMsk &= ~channelVoiceMsgTypeMsk;
 }
 
-// Set filter mask for system Common Msg
+// Set filter mask for system Common Msg but Sysex.
+// As sysex has a start/end behaviour, it is not possible to filter here.
+// Use the setSysExFilter.
 void midiXparser::setSystemCommonMsgFilter(uint8_t systemCommonMsgFilterMask) {
       m_systemCommonMsgFilterMask = systemCommonMsgFilterMask;
+      if ( systemCommonMsgFilterMask != noSystemCommonMsgMsk)
+          m_midiMsgTypeFilterMsk |= systemCommonMsgTypeMsk;
+      else
+          m_midiMsgTypeFilterMsk &= ~systemCommonMsgTypeMsk;
 }
 
 // Set filter mask for realtime Msg
 void midiXparser::setRealTimeMsgFilter(uint8_t realTimeMsgFilterMask) {
       m_realTimeMsgFilterMask = realTimeMsgFilterMask;
+      if ( realTimeMsgFilterMask != noRealTimeMsgMsk)
+          m_midiMsgTypeFilterMsk |= realTimeMsgTypeMsk;
+      else
+          m_midiMsgTypeFilterMsk &= ~realTimeMsgTypeMsk;
 }
 
-// Set filter mask all/none for all midi Msg but Sysex
-void midiXparser::setMidiMsgFilter(allNoValues value) {
+// Set filter mask all/none for all midi Msg including Sysex
+// For Sysex, the "on the fly" mode is activated by default
+// To change that, you must call explicitly setSysExFilter again.
+void midiXparser::setMidiMsgFilter(midiMsgTypeMaskValue midiMsgTypeFilterMsk) {
 
-   if (value == allMidiMsg ) {
-      setChannelVoiceMsgFilter(allChannelVoiceMsgMsk);
-      setSystemCommonMsgFilter(allSystemCommonMsgMsk) ;
-      setRealTimeMsgFilter(allRealTimeMsgMsk);
-      return;
-   }
+  // setMidiMsgFilter resets all sub-filters
+  setChannelVoiceMsgFilter(noChannelVoiceMsgMsk);
+  setSystemCommonMsgFilter(noSystemCommonMsgMsk) ;
+  setRealTimeMsgFilter(noRealTimeMsgMsk);
+  setSysExFilter(false);
 
-   if (value == noMidiMsg ) {
-      setChannelVoiceMsgFilter(noChannelVoiceMsgMsk);
-      setSystemCommonMsgFilter(noSystemCommonMsgMsk) ;
-      setRealTimeMsgFilter(noRealTimeMsgMsk);
-      return;
-   }
+  // Channel voice msg
+  if (midiMsgTypeFilterMsk & channelVoiceMsgTypeMsk )
+     setChannelVoiceMsgFilter(allChannelVoiceMsgMsk);
+
+  // System common msg
+  if (midiMsgTypeFilterMsk & systemCommonMsgTypeMsk )
+     setSystemCommonMsgFilter(allSystemCommonMsgMsk) ;
+
+  // real time msg
+  if (midiMsgTypeFilterMsk & realTimeMsgTypeMsk )
+     setRealTimeMsgFilter(allRealTimeMsgMsk);
+
+  // Sysex msg
+  if ( midiMsgTypeFilterMsk & sysExMsgTypeMsk )
+     setSysExFilter(true,0);
 
 }
 
@@ -191,17 +216,19 @@ void midiXparser::setMidiMsgFilter(allNoValues value) {
 // That allows parsing on the fly without the memory limitation constraint,
 // but will not return true on parsing, so you must use isByteCaptured().
 //////////////////////////////////////////////////////////////////////////////
-bool midiXparser::setSysExFilter(bool sysExFilterToggle,unsigned sysExBufferSize) {
+bool midiXparser::setSysExFilter(bool sysExFilter,unsigned sysExBufferSize) {
 
     // Already allocated. Free buffer.
     if ( m_sysExBuffer!= NULL) free(m_sysExBuffer);
 
     m_sysExBufferSize  = sysExBufferSize ;
     m_sysExBufferIndex = 0 ;
-    m_sysExFilterToggle = sysExFilterToggle;
     m_sysExBuffer = NULL ;
 
-    if ( sysExFilterToggle ) {
+    if ( sysExFilter ) {
+
+      m_midiMsgTypeFilterMsk |= sysExMsgTypeMsk;
+
       // On the fly mode
       if (sysExBufferSize == 0 ) return true ;
 
@@ -211,10 +238,15 @@ bool midiXparser::setSysExFilter(bool sysExFilterToggle,unsigned sysExBufferSize
       else {
            // Allocation error. Disable SYSEX filter.
            m_sysExBufferSize  = 0 ;
-           m_sysExFilterToggle = false;
+           m_midiMsgTypeFilterMsk &= ~sysExMsgTypeMsk;
            return false;
        }
-    } else m_sysExBufferSize = 0;
+    }
+    else
+    {
+      m_sysExBufferSize = 0;
+      m_midiMsgTypeFilterMsk &= ~sysExMsgTypeMsk;
+    }
 
     return true;
 
@@ -233,19 +265,21 @@ bool midiXparser::parse(byte readByte) {
     m_previousReadByte = m_readByte ;
     m_readByte = readByte;
     m_isByteCaptured=false;
-
-    // Clear any previous sysex error
-    if (m_sysExError) m_sysExError = false;
+    m_isMsgReady = false;
+    // Clear any previous sysex error if not in sysex mode anymore
+    m_sysExError = false;
 
     // MIDI Message status are starting at 0x80
     if ( readByte >= 0x80 )
     {
+
+
        // Real time messages must be processed as transparent for all other status
        if  ( readByte >= 0xF8 ) {
-            // Apply message channel filter mask
+            // Apply midi channel filter mask
             m_isByteCaptured = ( m_realTimeMsgFilterMask & ( 1 << ( 15-(readByte & 0x0F) )  )  ) ? true:false;
             if (m_isByteCaptured) {
-              m_midiParsedMsgType = realTimeMsgType;
+              m_midiParsedMsgType = realTimeMsgTypeMsk;
               m_midiMsgRealTime[0] = readByte;
             }
             m_isMsgReady = m_isByteCaptured;
@@ -256,24 +290,22 @@ bool midiXparser::parse(byte readByte) {
        m_runningStatusPossible=false;
 
        // Reset current msg type and msg len
-       m_midiCurrentMsgType = noneMsgType;
+       m_midiCurrentMsgType = noneMsgTypeMsk;
        m_nextMidiMsglen = 0;
        m_expectedMsgLen = 0;
 
        // Start SYSEX ---------------------------------------------------------
 
        // Clean end of Sysex.
-       // Sysex can be terminated abnormally also by another status
        if (m_sysExMode && readByte == eoxStatus ) {
                m_sysExMode = false;
-               m_sysExError = false;
-               m_midiParsedMsgType = sysExMsgType;
-               m_isByteCaptured = m_sysExFilterToggle;
-               m_isMsgReady = (m_sysExFilterToggle && m_sysExBufferIndex > 0);
+               m_midiParsedMsgType = sysExMsgTypeMsk;
+               m_isByteCaptured = true ;
+               m_isMsgReady = ( m_sysExBufferIndex > 0);
                return m_isMsgReady;
        }
 
-       // SysEx can be terminated abonrmally with a midi status.
+       // SysEx can be terminated abnormally with a midi status.
        // In that case, the SYSEX msg will be dropped to proceed the midi command.
        // The message is still buffered. m_sysExError is set to true for this round.
 
@@ -286,22 +318,21 @@ bool midiXparser::parse(byte readByte) {
        if ( readByte == soxStatus ) {
               m_sysExMode = true;
               m_sysExBufferIndex = 0;
-              m_midiCurrentMsgType = sysExMsgType;
-              m_isByteCaptured = m_sysExFilterToggle;
-              m_isMsgReady = false;
-              return m_isMsgReady;
+              m_midiCurrentMsgType = sysExMsgTypeMsk;
+              m_isByteCaptured = true;
+
+              return false;
        }
 
       // Channel messages between 0x80 and 0xEF ------------------------------------
       if ( readByte <= 0xEF ) {
 
-          m_midiCurrentMsgType = channelVoiceMsgType;
+          m_midiCurrentMsgType = channelVoiceMsgTypeMsk;
 
           // Midi channel filter
           if ( m_midiChannelFilter != allChannel &&
                    (readByte & 0x0F) != m_midiChannelFilter ) {
-                   m_isMsgReady = false;
-                   return m_isMsgReady;
+                   return false;
           }
 
           // Apply message channel filter mask
@@ -309,8 +340,9 @@ bool midiXparser::parse(byte readByte) {
       }
 
       // System common messages between 0xF0 and 0xF7 -----------------------------
+      // but SOX / EOX
       else {
-          m_midiCurrentMsgType = systemCommonMsgType;
+          m_midiCurrentMsgType = systemCommonMsgTypeMsk;
           m_isByteCaptured = ( m_systemCommonMsgFilterMask & ( 1 << (7 - (readByte & 0x0F) )  )  ) ? true:false;
       }
 
@@ -323,7 +355,7 @@ bool midiXparser::parse(byte readByte) {
 
         // Case of 1 byte len midi msg (Tune request)
         if ( m_expectedMsgLen == 1 ) {
-          m_midiParsedMsgType = m_midiCurrentMsgType;
+          m_midiParsedMsgType = systemCommonMsgTypeMsk;//m_midiCurrentMsgType;
           m_isMsgReady = true;
           return m_isMsgReady;
         }
@@ -337,7 +369,6 @@ bool midiXparser::parse(byte readByte) {
           // Capture the SYSEX message if filter is set
           // If m_sysExBufferSize is 0, do not store
           if (m_sysExMode ) {
-              if (m_sysExFilterToggle) {
                   if (m_sysExBufferSize == 0 ) m_isByteCaptured = true; // On the fly
                   else
                   // Check overflow of the sysex buffer
@@ -349,9 +380,7 @@ bool midiXparser::parse(byte readByte) {
                       m_sysExBuffer[m_sysExBufferIndex++] =   readByte ;
                       m_isByteCaptured = true;
                   }
-              } // Toggle
-              m_isMsgReady = false;
-              return m_isMsgReady;
+              return false;
           }
 
           // "Pure" midi message data
@@ -374,7 +403,7 @@ bool midiXparser::parse(byte readByte) {
             // Enable running status if it is a message channel.
             if (m_nextMidiMsglen == 0) {
                 m_midiParsedMsgType = m_midiCurrentMsgType;
-                if (m_midiParsedMsgType == channelVoiceMsgType) {
+                if (m_midiParsedMsgType == channelVoiceMsgTypeMsk) {
                   m_runningStatusPossible = true;
                 }
                 m_isMsgReady = true;
@@ -386,7 +415,6 @@ bool midiXparser::parse(byte readByte) {
 
      // All other data here are purely ignored.
      // In respect of the MIDI specifications.
-     m_isMsgReady = false;
 
     return m_isMsgReady;
 }

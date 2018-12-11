@@ -44,7 +44,7 @@ static  uint8_t dummyMsg1[] = {
   0x91,0x3B,0x64,
   0x81,0x3B,0x64,
   0x92,0x3C,0x70,
-  0xFB,
+  0xFB,0xF6,
   0x82,0x3C,0x70,
   0xA0,0XF8,0x64,0x7F,
   0xB1,0x64,0x7F,
@@ -65,7 +65,7 @@ static  uint8_t dummyMsg1[] = {
    0xF0,0x77,0x77,0x77,0xF8,0x0,0x1,0x2,0xF8,
    0x80,0x50,0x40,
    0xF0,0x77,0x77,0x77,0xF8,0x40,0x41,0x42,0x43,0xF8,0X44,0xF7,
-   0xF0,0x77,0x77,0x77,0x0B,'H','E','L','L','O',0xF7} ;
+   0xF0,0x77,0x77,0xF0,0x0B,'H','E','L','L','O',0xF7} ;
 
 bool midiCounterTests(
                     midiXparser *midiParser,
@@ -79,7 +79,6 @@ bool midiCounterTests(
 ) {
 
    bool pass=false;
-
    unsigned msgCount = 0;
    unsigned capturedBytesCount = 0;
    unsigned noCapturedBytesCount = 0;
@@ -90,7 +89,7 @@ bool midiCounterTests(
    for (unsigned i = 0; i< dummySize ; i++ ) {
      if ( midiParser->parse( dummy[i] ) ) {
         msgCount++ ;
-        if ( midiParser->getMidiMsgType() == midiXparser::sysExMsgType ) {
+        if ( midiParser->getMidiMsgType() == midiXparser::sysExMsgTypeMsk ) {
           sysExMsgCount++;
           sysExLen += midiParser->getSysExMsgLen();
         } else
@@ -172,10 +171,10 @@ void test10b() {
 
    midiXparser midiParser;
    midiParser.setMidiChannelFilter(midiXparser::allChannel);
-   midiParser.setMidiMsgFilter( midiXparser::allMidiMsg );
+   midiParser.setMidiMsgFilter( midiXparser::allMsgTypeMsk );
 
    pass = midiCounterTests(&midiParser,dummy,dummySize,
-     21 , // expMsgCount,
+     22 , // expMsgCount,
      dummySize, // expCapturedBytes,
      0 , // expSysExMsgCount,
      0 , // expSysExErrorCount,
@@ -221,7 +220,7 @@ void test10d() {
 
    midiXparser midiParser;
    midiParser.setMidiChannelFilter(midiXparser::allChannel);
-   midiParser.setMidiMsgFilter( midiXparser::noMidiMsg );
+   midiParser.setMidiMsgFilter( midiXparser::noneMsgTypeMsk );
 
    pass = midiCounterTests(&midiParser,dummy,dummySize,
      0 ,  // expMsgCount,
@@ -245,11 +244,11 @@ void test10e() {
 
    midiXparser midiParser;
    midiParser.setMidiChannelFilter(1);
-   midiParser.setMidiMsgFilter( midiXparser::allMidiMsg );
+   midiParser.setMidiMsgFilter( midiXparser::allMsgTypeMsk );
 
    pass = midiCounterTests(&midiParser,dummy,dummySize,
-     9 ,  // expMsgCount,
-     15 , // expCapturedBytes,
+     10 ,  // expMsgCount,
+     16 , // expCapturedBytes,
      0 ,  // expSysExMsgCount,
      0 ,  // expSysExErrorCount,
      0 ); // expSysExLen
@@ -269,11 +268,11 @@ void test10f() {
 
    midiXparser midiParser;
    midiParser.setMidiChannelFilter(2);
-   midiParser.setMidiMsgFilter( midiXparser::allMidiMsg );
+   midiParser.setMidiMsgFilter( midiXparser::allMsgTypeMsk );
 
    pass = midiCounterTests(&midiParser,dummy,dummySize,
-     13 ,  // expMsgCount,
-     22 , // expCapturedBytes,
+     14 ,  // expMsgCount,
+     23 , // expCapturedBytes,
      0 ,  // expSysExMsgCount,
      0 ,  // expSysExErrorCount,
      0 ); // expSysExLen
@@ -293,13 +292,13 @@ void test10g() {
    bool pass=false;
 
    midiXparser midiParser;
-   midiParser.setMidiMsgFilter( midiXparser::allMidiMsg );
+   midiParser.setMidiMsgFilter( midiXparser::allMsgTypeMsk );
    midiParser.setMidiChannelFilter(2);
    midiParser.setRealTimeMsgFilter(midiXparser::noRealTimeMsgMsk  );
 
    pass = midiCounterTests(&midiParser,dummy,dummySize,
-     7 ,  // expMsgCount,
-     16 , // expCapturedBytes,
+     8 ,  // expMsgCount,
+     17 , // expCapturedBytes,
      0 ,  // expSysExMsgCount,
      0 ,  // expSysExErrorCount,
      0 ); // expSysExLen
@@ -423,6 +422,99 @@ void test10l() {
    if (!pass) serializer(&midiParser,dummy,dummySize );
 }
 
+void test10m() {
+   //            **********************************************
+   header("10m","Top level filter - channelVoiceMsgTypeMsk Ch 1");
+
+   uint8_t * dummy = dummyMsg1;
+   unsigned dummySize = sizeof(dummyMsg1);
+   bool pass=false;
+
+   midiXparser midiParser;
+   midiParser.setMidiChannelFilter(0);
+   midiParser.setMidiMsgFilter( midiXparser::channelVoiceMsgTypeMsk );
+
+   pass = midiCounterTests(&midiParser,dummy,dummySize,
+     5 , // expMsgCount,
+     12, // expCapturedBytes,
+     0 , // expSysExMsgCount,
+     0 , // expSysExErrorCount,
+     0 ); // expSysExLen
+
+   footer(pass);
+   if (!pass) serializer(&midiParser,dummy,dummySize );
+}
+
+void test10n() {
+   //            **********************************************
+   header("10n","Top level filter-systemCommonMsgTypeMsk All Ch");
+
+   uint8_t * dummy = dummyMsg1;
+   unsigned dummySize = sizeof(dummyMsg1);
+   bool pass=false;
+
+   midiXparser midiParser;
+   midiParser.setMidiChannelFilter(midiXparser::allChannel);
+   midiParser.setMidiMsgFilter( midiXparser::systemCommonMsgTypeMsk );
+
+   pass = midiCounterTests(&midiParser,dummy,dummySize,
+     1 , // expMsgCount,
+     1, // expCapturedBytes,
+     0 , // expSysExMsgCount,
+     0 , // expSysExErrorCount,
+     0 ); // expSysExLen
+
+   footer(pass);
+   if (!pass) serializer(&midiParser,dummy,dummySize );
+}
+
+void test10o() {
+      //            **********************************************
+      header("10o","Top level filter-realTimeMsgTypeMsk     All Ch");
+
+      uint8_t * dummy = dummyMsg1;
+      unsigned dummySize = sizeof(dummyMsg1);
+      bool pass=false;
+
+      midiXparser midiParser;
+      midiParser.setMidiChannelFilter(midiXparser::allChannel);
+      midiParser.setMidiMsgFilter( midiXparser::realTimeMsgTypeMsk );
+
+      pass = midiCounterTests(&midiParser,dummy,dummySize,
+        6 , // expMsgCount,
+        6, // expCapturedBytes,
+        0 , // expSysExMsgCount,
+        0 , // expSysExErrorCount,
+        0 ); // expSysExLen
+
+      footer(pass);
+      if (!pass) serializer(&midiParser,dummy,dummySize );
+}
+
+void test10p() {
+      //            **********************************************
+      header("10p","Top level filter-sysExMsgTypeMsk        All Ch");
+
+      uint8_t * dummy = dummyMsg2;
+      unsigned dummySize = sizeof(dummyMsg2);
+      bool pass=false;
+
+      midiXparser midiParser;
+      midiParser.setMidiChannelFilter(midiXparser::allChannel);
+      midiParser.setMidiMsgFilter( midiXparser::sysExMsgTypeMsk );
+
+      pass = midiCounterTests(&midiParser,dummy,dummySize,
+        0 , // expMsgCount,
+        52, // expCapturedBytes,
+        0 , // expSysExMsgCount,
+        2 , // expSysExErrorCount,
+        0 ); // expSysExLen
+
+      footer(pass);
+      if (!pass) serializer(&midiParser,dummy,dummySize );
+}
+
+
 void test20a() {
 
    //            **********************************************
@@ -464,14 +556,88 @@ void test20b() {
      5 ,  // expMsgCount,
      52, // expCapturedBytes,
      5 , // expSysExMsgCount,
-     1 , // expSysExErrorCount,
-     35 );// expSysExLen
+     2 , // expSysExErrorCount,
+     32 );// expSysExLen
 
    pass = pass && midiCheckContent(&midiParser,dummy,dummySize);
 
    footer(pass);
    if (!pass) serializer(&midiParser,dummy,dummySize );
 }
+
+void test20c() {
+
+   //            **********************************************
+   header("20c","SYSEX buffer overflow                         ");
+
+   uint8_t dummy[] = {0xF0,0x77,0x77,0x77,1,2,3,4,5,6,7,8,0xF7};
+   unsigned dummySize = sizeof(dummy);
+   bool pass=false;
+
+   midiXparser midiParser;
+   midiParser.setSysExFilter(true,6);
+
+   pass = midiCounterTests(&midiParser,dummy,dummySize,
+     0 ,  // expMsgCount,
+     7, // expCapturedBytes,
+     0 , // expSysExMsgCount,
+     1 , // expSysExErrorCount,
+     0 );// expSysExLen
+
+   footer(pass);
+   if (!pass) serializer(&midiParser,dummy,dummySize );
+}
+void test20d() {
+
+   //            **********************************************
+   header("20d","SYSEX - Buffered all msg mixed RealTIME       ");
+
+   uint8_t *dummy = dummyMsg2;
+   unsigned dummySize = sizeof(dummyMsg2);
+   bool pass=false;
+
+   midiXparser midiParser;
+   midiParser.setMidiMsgFilter( midiXparser::allMsgTypeMsk );
+   midiParser.setSysExFilter(true,64);
+
+   pass = midiCounterTests(&midiParser,dummy,dummySize,
+     14 ,  // expMsgCount,
+     63, // expCapturedBytes,
+     5 , // expSysExMsgCount,
+     2 , // expSysExErrorCount,
+     32 );// expSysExLen
+
+   //pass = pass && midiCheckContent(&midiParser,dummy,dummySize);
+
+   footer(pass);
+   if (!pass) serializer(&midiParser,dummy,dummySize );
+}
+
+void test20e() {
+
+   //            **********************************************
+   header("20e","Top lev. filter-sysExMsgTypeMsk -Check content");
+
+   uint8_t *dummy = dummyMsg2;
+   unsigned dummySize = sizeof(dummyMsg2);
+   bool pass=false;
+
+   midiXparser midiParser;
+   midiParser.setMidiChannelFilter(midiXparser::allChannel);
+   midiParser.setMidiMsgFilter( midiXparser::sysExMsgTypeMsk );
+   midiParser.setSysExFilter(true,64);
+
+   pass = midiCounterTests(&midiParser,dummy,dummySize,
+     5 ,  // expMsgCount,
+     52, // expCapturedBytes,
+     5 , // expSysExMsgCount,
+     2 , // expSysExErrorCount,
+     32 );// expSysExLen
+
+   footer(pass);
+   if (!pass) serializer(&midiParser,dummy,dummySize );
+}
+
 
 void header(char const *title, char const * subTitle) {
   printf("----------------------------------------------------------------------------\n");
@@ -504,9 +670,16 @@ void serializer(midiXparser *midiParser,uint8_t dummy[], unsigned dummySize ) {
     bool msg = midiParser->parse( dummy[i] );
 
     printf(" %2x ",dummy[i]);
-    if ( midiParser->isByteCaptured()) printf("(c)");
-    if(  midiParser->isSysExMode()) printf("(x)");
-    else if( midiParser->isSysExError()) { printf("(e)"); sysexerrorcount++; }
+
+    if ( midiParser->isByteCaptured()) printf("c"); else printf(" ");
+
+    if(  midiParser->isSysExMode()) printf("x");else printf(" ");
+
+    if( midiParser->isSysExError()) {
+        printf("e");
+        sysexerrorcount++;
+      } else printf(" ");
+
     printf(" |");
 
     if ( ++nl >= cr ) { printf("\n"); nl = 0 ; }
@@ -519,7 +692,7 @@ void serializer(midiXparser *midiParser,uint8_t dummy[], unsigned dummySize ) {
          if ( nl < cr ) printf("\n");
          nl = 0;
 
-         if ( midiParser->getMidiMsgType() == midiXparser::sysExMsgType ) {
+         if ( midiParser->getMidiMsgType() == midiXparser::sysExMsgTypeMsk ) {
            sysexmsgcount++;
            sysexlen += midiParser->getSysExMsgLen();
 
@@ -562,10 +735,11 @@ printf("\n======================================================================
 printf("midiXparser class TESTS\n");
 printf("============================================================================\n\n");
 
-test10a(); test10b(); test10c(); test10d(); test10e(); test10f();test10g();
-test10h(); test10i(); test10j(); test10k(); test10l();
+test10a(); test10b(); test10c(); test10d(); test10e(); test10f(); test10g();
+test10h(); test10i(); test10j(); test10k(); test10l(); test10m(); test10n();
+test10o(); test10p();
 
-test20a(); test20b();
+test20a(); test20b(); test20c(); test20d(); test20e();
 
 printf("\n======================== END OF TESTS ======================================\n\n");
 }

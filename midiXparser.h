@@ -55,8 +55,9 @@ class midiXparser {
   uint8_t  m_systemCommonMsgFilterMask = noSystemCommonMsgMsk;
   uint8_t  m_realTimeMsgFilterMask = noRealTimeMsgMsk;
   uint8_t  m_midiChannelFilter    = allChannel;
-  uint8_t  m_midiParsedMsgType    = noneMsgType;
-  uint8_t  m_midiCurrentMsgType   = noneMsgType;
+  uint8_t  m_midiMsgTypeFilterMsk = noneMsgTypeMsk;
+  uint8_t  m_midiParsedMsgType    = noneMsgTypeMsk;
+  uint8_t  m_midiCurrentMsgType   = noneMsgTypeMsk;
 
   static const  uint8_t m_systemCommonMsglen[8];
   static const  uint8_t m_channelVoiceMsgMsglen[7];
@@ -64,23 +65,21 @@ class midiXparser {
   uint8_t* m_sysExBuffer = NULL;
   unsigned m_sysExBufferSize  = 0;
   unsigned m_sysExBufferIndex = 0;
-  bool     m_sysExFilterToggle = false;
-
+  //bool     m_sysExFilterToggle = false;
 
   public:
     // Midi messages type
-    enum midiMsgType {
-        noneMsgType = 0B0000,
-        channelVoiceMsgType = 0B0001,
-        systemCommonMsgType = 0B0010,
-        realTimeMsgType = 0B0100,
-        sysExMsgType = 0B1000
+    enum midiMsgTypeMaskValue {
+        noneMsgTypeMsk          = 0B0000,
+        channelVoiceMsgTypeMsk  = 0B0001,
+        systemCommonMsgTypeMsk  = 0B0010,
+        realTimeMsgTypeMsk      = 0B0100,
+        sysExMsgTypeMsk         = 0B1000,
+        allMsgTypeMsk           = 0B1111
     };
 
     enum allNoValues {
-        allChannel = 0xFF ,
-        allMidiMsg = 0xFE,
-        noMidiMsg  = 0xFD,
+        allChannel = 0xFF,
     };
 
     // Bits 6 to 0 map status 8n 9n An Bn Cn Dn En
@@ -167,7 +166,7 @@ class midiXparser {
     bool        isSysExError();
     bool        isByteCaptured() ;
     uint8_t     getMidiMsgType() ;
-    uint8_t     getMidiStatusMsgType(uint8_t midiStatus) ;
+    uint8_t     getMidiStatusMsgTypeMsk(uint8_t midiStatus) ;
     uint8_t     getMidiMsgLen();
     uint8_t     getMidiStatusMsgLen(uint8_t midiStatus);
     uint8_t *   getMidiMsg();
@@ -179,7 +178,7 @@ class midiXparser {
     void        setChannelVoiceMsgFilter(uint8_t channelVoiceMsgFilterMask);
     void        setSystemCommonMsgFilter(uint8_t systemCommonMsgFilterMask);
     void        setRealTimeMsgFilter(uint8_t realTimeMsgFilterMask);
-    void        setMidiMsgFilter(allNoValues value);
+    void        setMidiMsgFilter(midiMsgTypeMaskValue value);
 
     bool        setSysExFilter(bool sysExFilterToggle,unsigned sysExBufferSize=0);
 
