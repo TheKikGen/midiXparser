@@ -166,9 +166,9 @@ class midiXparser {
     bool        isSysExError();
     bool        isByteCaptured() ;
     uint8_t     getMidiMsgType() ;
-    uint8_t     getMidiStatusMsgTypeMsk(uint8_t midiStatus) ;
+    static uint8_t     getMidiStatusMsgTypeMsk(uint8_t midiStatus) ;
     uint8_t     getMidiMsgLen();
-    uint8_t     getMidiStatusMsgLen(uint8_t midiStatus);
+    static uint8_t     getMidiStatusMsgLen(uint8_t midiStatus);
     uint8_t *   getMidiMsg();
     uint8_t *   getSysExMsg();
     byte        getByte() ;
