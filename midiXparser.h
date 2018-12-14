@@ -64,6 +64,7 @@ class midiXparser {
 
   uint8_t* m_sysExBuffer = NULL;
   unsigned m_sysExBufferSize  = 0;
+  unsigned m_sysExBufferIndex = 0;
   unsigned m_sysExMsgLen = 0;
 
   public:
@@ -164,6 +165,7 @@ class midiXparser {
     bool        isSysExMode() ;
     bool        wasSysExMode() ;
     bool        isSysExError();
+    bool        isSysExOnTheFly();
     bool        isByteCaptured() ;
     uint8_t     getMidiMsgType() ;
     static uint8_t     getMidiStatusMsgTypeMsk(uint8_t midiStatus) ;

@@ -89,16 +89,16 @@ bool midiCounterTests(
    for (unsigned i = 0; i< dummySize ; i++ ) {
      if ( midiParser->parse( dummy[i] ) ) {
         msgCount++ ;
-        if ( midiParser->getMidiMsgType() == midiXparser::sysExMsgTypeMsk ) {
-          sysExMsgCount++;
-          sysExLen += midiParser->getSysExMsgLen();
-        } else
-        if( midiParser->isSysExError()) sysExErrorCount++;
-
+        if (  midiParser->getMidiMsgType() == midiXparser::sysExMsgTypeMsk ) {
+              sysExMsgCount++;
+              sysExLen += midiParser->getSysExMsgLen();
+        }
      }
+     if ( midiParser->isSysExError() ) sysExErrorCount++;
      if ( midiParser->isByteCaptured() ) capturedBytesCount++ ;
      else noCapturedBytesCount++;
    }
+//printf("msgcount %d  msgcountsys %d  sysexlen  %d syx err %d  cap %d  ",msgCount, sysExMsgCount,sysExLen,sysExErrorCount,capturedBytesCount);
 
    pass = (  msgCount == expMsgCount &&
              capturedBytesCount == expCapturedBytes &&
@@ -504,11 +504,11 @@ void test10p() {
       midiParser.setMidiMsgFilter( midiXparser::sysExMsgTypeMsk );
 
       pass = midiCounterTests(&midiParser,dummy,dummySize,
-        0 , // expMsgCount,
+        5 , // expMsgCount,
         52, // expCapturedBytes,
-        0 , // expSysExMsgCount,
+        5 , // expSysExMsgCount,
         2 , // expSysExErrorCount,
-        0 ); // expSysExLen
+        32 ); // expSysExLen
 
       footer(pass);
       if (!pass) serializer(&midiParser,dummy,dummySize );
@@ -741,64 +741,63 @@ void serializer(midiXparser *midiParser,uint8_t dummy[], unsigned dummySize ) {
   for (unsigned i = 0; i< dummySize ; i++ ) {
 
     bool msg = midiParser->parse( dummy[i] );
+    if (msg) msgcount++ ;
 
     printf(" %2x ",dummy[i]);
 
-    if ( midiParser->isByteCaptured()) printf("c"); else printf(" ");
+    if ( midiParser->isByteCaptured()) {
+        printf("c");
+        capturedbytescount++ ;
+    } else {
+        printf(" ");
+        nocapturedbytescount++;
+    }
 
     if(  midiParser->isSysExMode()) printf("x");else printf(" ");
 
     if( midiParser->isSysExError()) {
         printf("e");
         sysexerrorcount++;
-      } else printf(" ");
+        }
+    else printf(" ");
 
     printf(" |");
 
     if ( ++nl >= cr ) { printf("\n"); nl = 0 ; }
+    if (msg || midiParser->isSysExError() ) {
+          if ( nl < cr ) printf("\n");
+          nl = 0;
 
-    if ( midiParser->isByteCaptured() ) capturedbytescount++ ;
-    else nocapturedbytescount++;
+         if ( midiParser->wasSysExMode() ) {
+            if ( midiParser->isSysExError() ) printf("** ERROR **" );
+            else { sysexmsgcount++; sysexlen += midiParser->getSysExMsgLen(); }
 
-    if ( msg ) {
-         msgcount++ ;
-         if ( nl < cr ) printf("\n");
-         nl = 0;
-
-         if ( midiParser->getMidiMsgType() == midiXparser::sysExMsgTypeMsk ) {
-           sysexmsgcount++;
             printf("SYSEX MSG (len = %d) = [", midiParser->getSysExMsgLen() );
-           if ( midiParser->getSysExMsgLen() ) {
-              sysexlen += midiParser->getSysExMsgLen();
+
+            if ( !midiParser->isSysExOnTheFly() ) {
               for (unsigned j = 0 ; j < midiParser->getSysExMsgLen() ; j++) {
                   printf("%2x," , midiParser->getSysExMsg()[j]);
               }
               printf("]\n");
-           }
+           } else printf("on the fly - unbuffered]");
 
          }
-
-         else {
-
+         if ( msg && midiParser->getMidiMsgType() != midiXparser::sysExMsgTypeMsk ) {
           printf("MIDI MSG = [%2X",midiParser->getMidiMsg()[0]);
           if (midiParser->getMidiMsgLen() >=2) { printf(",%2x",midiParser->getMidiMsg()[1]);}
           if (midiParser->getMidiMsgLen() ==3) { printf(",%2x",midiParser->getMidiMsg()[2]);}
           printf("]\n");
          }
-
          printf("\n");
     }
-
-
  }
-
- printf("\nStream length                  : %d\n",dummySize);
- printf("Number of midi messages found  : %d\n",msgcount);
- printf("Number of SysEx messages found : %d\n",sysexmsgcount);
- printf("Number of sysex errors         : %d\n",sysexerrorcount);
- printf("Total length of sysex messages : %d\n",sysexlen);
- printf("Number of bytes captured       : %d\n",capturedbytescount);
- printf("Number of bytes non captured   : %d\n",nocapturedbytescount);
+ printf("\nStream length                   : %d\n",dummySize);
+ printf("Number of midi messages found   : %d\n",msgcount);
+ printf("Number of valid SysEx msg found : %d\n",sysexmsgcount);
+ printf("Number of sysex errors          : %d\n",sysexerrorcount);
+ printf("Total length of sysex messages  : %d\n",sysexlen);
+ printf("Number of bytes captured        : %d\n",capturedbytescount);
+ printf("Number of bytes non captured    : %d\n",nocapturedbytescount);
 
  printf("--------------------------- END OF DUMP ------------------------------------\n");
 }
