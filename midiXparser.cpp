@@ -272,8 +272,6 @@ bool midiXparser::parse(byte readByte) {
     // MIDI Message status are starting at 0x80
     if ( readByte >= 0x80 )
     {
-
-
        // Real time messages must be processed as transparent for all other status
        if  ( readByte >= 0xF8 ) {
             // Apply midi channel filter mask
@@ -299,10 +297,13 @@ bool midiXparser::parse(byte readByte) {
        // Clean end of Sysex.
        if (m_sysExMode && readByte == eoxStatus ) {
                m_sysExMode = false;
-               m_midiParsedMsgType = sysExMsgTypeMsk;
-               m_isByteCaptured = true ;
-               m_isMsgReady = ( m_sysExBufferIndex > 0);
-               return true; // Even if no data !
+               // Apply filter
+               if ( m_midiMsgTypeFilterMsk & sysExMsgTypeMsk ) {
+                  m_midiParsedMsgType = sysExMsgTypeMsk;
+                  m_isByteCaptured = true ;
+                  m_isMsgReady = ( m_sysExBufferSize > 0); // On the fly ?
+               }
+               return m_isMsgReady; // Even if no data !
        }
 
        // SysEx can be terminated abnormally with a midi status.
@@ -319,7 +320,7 @@ bool midiXparser::parse(byte readByte) {
               m_sysExMode = true;
               m_sysExBufferIndex = 0;
               m_midiCurrentMsgType = sysExMsgTypeMsk;
-              m_isByteCaptured = true;
+              m_isByteCaptured = ( m_midiMsgTypeFilterMsk & sysExMsgTypeMsk );
 
               return false;
        }
@@ -369,6 +370,9 @@ bool midiXparser::parse(byte readByte) {
           // Capture the SYSEX message if filter is set
           // If m_sysExBufferSize is 0, do not store
           if (m_sysExMode ) {
+
+              // Apply filter
+              if (m_midiMsgTypeFilterMsk & sysExMsgTypeMsk) {
                   if (m_sysExBufferSize == 0 ) m_isByteCaptured = true; // On the fly
                   else
                   // Check overflow of the sysex buffer
@@ -380,6 +384,7 @@ bool midiXparser::parse(byte readByte) {
                       m_sysExBuffer[m_sysExBufferIndex++] =   readByte ;
                       m_isByteCaptured = true;
                   }
+              }
               return false;
           }
 
