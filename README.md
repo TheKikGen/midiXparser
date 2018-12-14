@@ -19,7 +19,6 @@ The demo sketch contains many tests to validate midiXparser features you can use
     midiParser.setChannelVoiceMsgFilter(midiXparser::noteOffMsk | midiXparser::noteOnMsk );  
     loop() 
     {
-
         if ( Serial.available() && ( midiParser.parse( Serial.read() ) {
         // Do something for notes on/off
 
@@ -27,7 +26,7 @@ The demo sketch contains many tests to validate midiXparser features you can use
         (...)  
     }
 
-#### Capture sysex messages
+#### Capture sysex messages with buffering
 
     midiXparser midiParser;
     midiParser.setSysExFilter(true,64);
@@ -67,21 +66,24 @@ The demo sketch contains many tests to validate midiXparser features you can use
 
 #### bool parse(byte readByte)
     Parse a byte and return true if a complete midi message was detected, according to the filters set.
-    This method is also used for sysex if they are buffered with setSysExFilter.
+    This method is also used for sysex, buffered or unbuffered with setSysExFilter.
+    parse method will never return true for a sysex error. 
+    You have to check isSysexError() for an incomplete messsages.
 
 #### uint8_t *getMidiMsg()
     Get a pointer on the parsed midi message.
 
 #### uint8_t *getSysExMsg()
-    Get a pointer on the sysex parsed message.  The parsed message contains only data, and never
-    0XF0 (SOX) at the beginning, and 0XF7 (EOX) at the end.
+    Get a pointer on the sysex parsed message ONLY when buffered.  Do not use this buffer is you did not
+    pass any size to setSysExFilter. Results will be impredictable....
+    The parsed message contains only data, and never 0XF0 (SOX) at the beginning, and 0XF7 (EOX) at the end.
 
 #### uint8_t getMidiMsgLen()
-    Return the length of the last parsed message (value varies from 0 to 3).
+    Return the length of the last parsed message, including parsed sysex mssages.
     Return 0 if the parse method does not return true at the last call.    
       
 #### unsigned getSysExMsgLen() ;
-    Return the length of a complete sysex message, whithout SOX and EOX.
+    Return the length of a sysex message, whithout SOX and EOX, complete or not.
 
 #### byte getByte()
     Return the last byte parsed.
@@ -94,12 +96,16 @@ The demo sketch contains many tests to validate midiXparser features you can use
     This method can be used in combination with the IsByteCaptured method to process sysex flows
     on the fly, without buffering.    
 
+#### bool wasSysExMode()
+    Return true if the last call to the parse method has stopped the sysex mode, because of EOX or an sysex error.
+    The sysex message is stored if with Setfilter with a size was used.
+    
 #### bool isSysExError()
     Return true if the last call to the parse method has detected an abnormal end of sysex,
-    generally no EOX byte.
+    generally a midi status (a byte > 0x80) no beeing the EOX byte, or a sysex buffer overflow.
   
 #### bool isByteCaptured()  
-    Return true if the last byte parsed was kept to prepare a midi message.
+    Return true if the last byte parsed is used to prepare a midi message.
 
 #### uint8_t getMidiMsgType()
     Return the type of the last parsed midi message. 
@@ -111,7 +117,7 @@ The demo sketch contains many tests to validate midiXparser features you can use
     . midiXparser::realTimeMsgType
     . midiXparser::sysExMsgType
     
-#### uint8_t getMidiStatusMsgLen(uint8_t midiStatus)
+#### STATIC uint8_t getMidiStatusMsgLen(uint8_t midiStatus)
     Return the standard length of a midi status. Midi status are defined 
     by the following enumaration :
     
@@ -144,11 +150,11 @@ The demo sketch contains many tests to validate midiXparser features you can use
      . midiXparser::activeSensingStatus
      . midiXparser::systemResetStatus
 
-#### uint8_t getMidiStatusMsgType(uint8_t midiStatus)    
+#### STATIC uint8_t getMidiStatusMsgType(uint8_t midiStatus)    
     . Return the msg type of a midi status (see also getMidiMsgType)
  
 #### void setMidiChannelFilter(uint8_t midiChannelFilter)
-    TODO
+    . Set a filter to return only messages of the concerned midi channel.
 
 #### void setChannelVoiceMsgFilter(uint8_t channelVoiceMsgFilterMask)
     TODO
@@ -163,7 +169,11 @@ The demo sketch contains many tests to validate midiXparser features you can use
     TODO
 
 #### bool setSysExFilter(bool sysExFilterToggle,unsigned sysExBufferSize=0)
-    TODO
+    . sysExFilter(true,0) will start filtering sysex messages without buffering.  You can
+    use the isByteCaptured and the isSysexMode methods to process the sysex midiflow.
+    . sysExFilter(true, nn) will start filtering sysex messages with buffering, so when 
+    the parse method will return true, bytes will be directly available.
+    A clean end of sysex will make the parse methode to return true, buffered or not.
 
 #### (static) unsigned encodeSysEx(const byte* inData, byte* outSysEx, unsigned inLength,bool fromMsbToLsb=true)
     TODO
