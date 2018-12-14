@@ -71,8 +71,12 @@ midiXparser::~midiXparser() {
   setSysExFilter(false);
 }
 
-// Give the current sysex state, even if not filtering bytes
+// Give the current sysex state,
 bool midiXparser::isSysExMode() { return m_sysExMode ;}
+
+bool midiXparser::wasSysExMode() {
+  return  ( m_readByte == eoxStatus || m_sysExError);
+}
 
 // Give the status of the last SYSEX transmission.
 bool midiXparser::isSysExError() { return m_sysExError ;}
