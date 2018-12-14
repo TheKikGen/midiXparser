@@ -140,8 +140,8 @@ bool midiCheckContent(midiXparser *midiParser,uint8_t * dummy,const unsigned dum
 }
 
 void test10a() {
-  //            **********************************************
-  header("10a","Default settings - no filters & no channel    ");
+  //            ****************************************************
+  header("10a","Default settings - no filters & no channel          ");
 
   uint8_t * dummy = dummyMsg1;
   unsigned dummySize = sizeof(dummyMsg1);
@@ -162,8 +162,8 @@ void test10a() {
 
 void test10b() {
 
-   //            **********************************************
-   header("10b","All msg - All channels                        ");
+   //            ****************************************************
+   header("10b","All msg - All channels                              ");
 
    uint8_t * dummy = dummyMsg1;
    unsigned dummySize = sizeof(dummyMsg1);
@@ -186,8 +186,8 @@ void test10b() {
 
 void test10c() {
 
-   //            **********************************************
-   header("10c","Filter = Note on/off default all channels     ");
+   //            ****************************************************
+   header("10c","Filter = Note on/off default all channels           ");
 
    uint8_t * dummy = dummyMsg1;
    unsigned dummySize = sizeof(dummyMsg1);
@@ -211,8 +211,8 @@ void test10c() {
 
 void test10d() {
 
-   //            **********************************************
-   header("10d","filter NoMidiMsg but All channels             ");
+   //            ****************************************************
+   header("10d","filter NoMidiMsg but All channels                   ");
 
    uint8_t * dummy = dummyMsg1;
    unsigned dummySize = sizeof(dummyMsg1);
@@ -235,8 +235,8 @@ void test10d() {
 
 void test10e() {
 
-   //            **********************************************
-   header("10e","Filter all messages on channel 2              ");
+   //            ****************************************************
+   header("10e","Filter all messages on channel 2                    ");
 
    uint8_t * dummy = dummyMsg1;
    unsigned dummySize = sizeof(dummyMsg1);
@@ -259,8 +259,8 @@ void test10e() {
 
 void test10f() {
 
-   //            **********************************************
-   header("10f","Filter all messages on channel 3              ");
+   //            ****************************************************
+   header("10f","Filter all messages on channel 3                    ");
 
    uint8_t * dummy = dummyMsg1;
    unsigned dummySize = sizeof(dummyMsg1);
@@ -284,8 +284,8 @@ void test10f() {
 
 void test10g() {
 
-   //            **********************************************
-   header("10g","Filter all msg on channel 3 - no Real Time    ");
+   //            ****************************************************
+   header("10g","Filter all msg on channel 3 - no Real Time          ");
 
    uint8_t * dummy = dummyMsg1;
    unsigned dummySize = sizeof(dummyMsg1);
@@ -309,8 +309,8 @@ void test10g() {
 
 void test10h() {
 
-   //            **********************************************
-   header("10h","Filter all Real Time                          ");
+   //            ****************************************************
+   header("10h","Filter all Real Time                                ");
 
    uint8_t * dummy = dummyMsg1;
    unsigned dummySize = sizeof(dummyMsg1);
@@ -332,8 +332,8 @@ void test10h() {
 
 void test10i() {
 
-   //            **********************************************
-   header("10i","Filter Real Time Timing Clock                 ");
+   //            ****************************************************
+   header("10i","Filter Real Time Timing Clock                       ");
 
    uint8_t * dummy = dummyMsg1;
    unsigned dummySize = sizeof(dummyMsg1);
@@ -355,8 +355,8 @@ void test10i() {
 
 void test10j() {
 
-   //            **********************************************
-   header("10j","Filter Real Time Start Stop Continue          ");
+   //            ****************************************************
+   header("10j","Filter Real Time Start Stop Continue                ");
 
    uint8_t * dummy = dummyMsg1;
    unsigned dummySize = sizeof(dummyMsg1);
@@ -378,8 +378,8 @@ void test10j() {
 
 void test10k() {
 
-   //            **********************************************
-   header("10k","Filter program change & channel pressure      ");
+   //            ****************************************************
+   header("10k","Filter program change & channel pressure            ");
 
    uint8_t * dummy = dummyMsg1;
    unsigned dummySize = sizeof(dummyMsg1);
@@ -401,8 +401,8 @@ void test10k() {
 
 void test10l() {
 
-   //            **********************************************
-   header("10l","Filter ctl chg - pitch bd with running status ");
+   //            ****************************************************
+   header("10l","Filter ctl chg - pitch bd with running status       ");
 
    uint8_t * dummy = dummyMsg1;
    unsigned dummySize = sizeof(dummyMsg1);
@@ -423,8 +423,8 @@ void test10l() {
 }
 
 void test10m() {
-   //            **********************************************
-   header("10m","Top level filter - channelVoiceMsgTypeMsk Ch 1");
+   //            ****************************************************
+   header("10m","Top level filter - channelVoiceMsgTypeMsk       Ch 1");
 
    uint8_t * dummy = dummyMsg1;
    unsigned dummySize = sizeof(dummyMsg1);
@@ -446,8 +446,8 @@ void test10m() {
 }
 
 void test10n() {
-   //            **********************************************
-   header("10n","Top level filter-systemCommonMsgTypeMsk All Ch");
+   //            ****************************************************
+   header("10n","Top level filter-systemCommonMsgTypeMsk       All Ch");
 
    uint8_t * dummy = dummyMsg1;
    unsigned dummySize = sizeof(dummyMsg1);
@@ -469,8 +469,8 @@ void test10n() {
 }
 
 void test10o() {
-      //            **********************************************
-      header("10o","Top level filter-realTimeMsgTypeMsk     All Ch");
+      //            ****************************************************
+      header("10o","Top level filter-realTimeMsgTypeMsk           All Ch");
 
       uint8_t * dummy = dummyMsg1;
       unsigned dummySize = sizeof(dummyMsg1);
@@ -492,8 +492,8 @@ void test10o() {
 }
 
 void test10p() {
-      //            **********************************************
-      header("10p","Top level filter-sysExMsgTypeMsk        All Ch");
+      //            ****************************************************
+      header("10p","Top level filter-sysExMsgTypeMsk              All Ch");
 
       uint8_t * dummy = dummyMsg2;
       unsigned dummySize = sizeof(dummyMsg2);
@@ -504,9 +504,9 @@ void test10p() {
       midiParser.setMidiMsgFilter( midiXparser::sysExMsgTypeMsk );
 
       pass = midiCounterTests(&midiParser,dummy,dummySize,
-        0 , // expMsgCount,
+        5 , // expMsgCount,
         52, // expCapturedBytes,
-        0 , // expSysExMsgCount,
+        5 , // expSysExMsgCount,
         2 , // expSysExErrorCount,
         0 ); // expSysExLen
 
@@ -517,8 +517,8 @@ void test10p() {
 
 void test20a() {
 
-   //            **********************************************
-   header("20a","Program change check content                  ");
+   //            ****************************************************
+   header("20a","Program change check content                        ");
 
    uint8_t dummy[] = {0xB1,0x64,0x7F,0xC2,0x64};
    unsigned dummySize = sizeof(dummy);
@@ -542,8 +542,8 @@ void test20a() {
 
 void test20b() {
 
-   //            **********************************************
-   header("20b","SYSEX check content                           ");
+   //            ****************************************************
+   header("20b","SYSEX check content                                 ");
 
    uint8_t *dummy = dummyMsg2;
    unsigned dummySize = sizeof(dummyMsg2);
@@ -567,8 +567,8 @@ void test20b() {
 
 void test20c() {
 
-   //            **********************************************
-   header("20c","SYSEX buffer overflow                         ");
+   //            ****************************************************
+   header("20c","SYSEX buffer overflow                               ");
 
    uint8_t dummy[] = {0xF0,0x77,0x77,0x77,1,2,3,4,5,6,7,8,0xF7};
    unsigned dummySize = sizeof(dummy);
@@ -589,8 +589,8 @@ void test20c() {
 }
 void test20d() {
 
-   //            **********************************************
-   header("20d","SYSEX - Buffered all msg mixed RealTIME       ");
+   //            ****************************************************
+   header("20d","SYSEX - Buffered all msg mixed RealTIME             ");
 
    uint8_t *dummy = dummyMsg2;
    unsigned dummySize = sizeof(dummyMsg2);
@@ -615,8 +615,8 @@ void test20d() {
 
 void test20e() {
 
-   //            **********************************************
-   header("20e","Top lev. filter-sysExMsgTypeMsk -Check content");
+   //            ****************************************************
+   header("20e","Top lev. filter-sysExMsgTypeMsk -  Check content    ");
 
    uint8_t *dummy = dummyMsg2;
    unsigned dummySize = sizeof(dummyMsg2);
@@ -638,10 +638,61 @@ void test20e() {
    if (!pass) serializer(&midiParser,dummy,dummySize );
 }
 
+void test20f() {
+
+   //            ****************************************************
+   header("20f","SYSEX - Special case F0 F7                          ");
+
+   uint8_t dummy[] = {0xF0, 0XF7};
+   unsigned dummySize = sizeof(dummy);
+   bool pass=false;
+
+   midiXparser midiParser;
+   midiParser.setMidiMsgFilter( midiXparser::allMsgTypeMsk );
+   midiParser.setSysExFilter(true,64);
+
+   pass = midiCounterTests(&midiParser,dummy,dummySize,
+     1 ,  // expMsgCount,
+     2, // expCapturedBytes,
+     1 , // expSysExMsgCount,
+     0 , // expSysExErrorCount,
+     0 );// expSysExLen
+
+   pass = pass && midiCheckContent(&midiParser,dummy,dummySize);
+
+   footer(pass);
+   if (!pass) serializer(&midiParser,dummy,dummySize );
+}
+
+void test20g() {
+
+   //            ****************************************************
+   header("20g","SYSEX - Special case F0 41 F7                       ");
+
+   uint8_t dummy[] = {0xF0, 0x41,0XF7};
+   unsigned dummySize = sizeof(dummy);
+   bool pass=false;
+
+   midiXparser midiParser;
+   midiParser.setMidiMsgFilter( midiXparser::allMsgTypeMsk );
+   midiParser.setSysExFilter(true,64);
+
+   pass = midiCounterTests(&midiParser,dummy,dummySize,
+     1 ,  // expMsgCount,
+     3 , // expCapturedBytes,
+     1 , // expSysExMsgCount,
+     0 , // expSysExErrorCount,
+     1 );// expSysExLen
+
+   pass = pass && midiCheckContent(&midiParser,dummy,dummySize);
+
+   footer(pass);
+   if (!pass) serializer(&midiParser,dummy,dummySize );
+}
 
 void header(char const *title, char const * subTitle) {
   printf("----------------------------------------------------------------------------\n");
-  printf("START TEST %s : %s", title, subTitle);
+  printf("TEST %s : %s", title, subTitle);
 }
 
 void footer(bool pass) {
@@ -739,7 +790,7 @@ test10a(); test10b(); test10c(); test10d(); test10e(); test10f(); test10g();
 test10h(); test10i(); test10j(); test10k(); test10l(); test10m(); test10n();
 test10o(); test10p();
 
-test20a(); test20b(); test20c(); test20d(); test20e();
+test20a(); test20b(); test20c(); test20d(); test20e(); test20f(); test20g();
 
 printf("\n======================== END OF TESTS ======================================\n\n");
 }

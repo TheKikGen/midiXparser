@@ -302,7 +302,7 @@ bool midiXparser::parse(byte readByte) {
                m_midiParsedMsgType = sysExMsgTypeMsk;
                m_isByteCaptured = true ;
                m_isMsgReady = ( m_sysExBufferIndex > 0);
-               return m_isMsgReady;
+               return true; // Even if no data !
        }
 
        // SysEx can be terminated abnormally with a midi status.
