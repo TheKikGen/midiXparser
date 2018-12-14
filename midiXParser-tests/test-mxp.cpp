@@ -767,13 +767,15 @@ void serializer(midiXparser *midiParser,uint8_t dummy[], unsigned dummySize ) {
 
          if ( midiParser->getMidiMsgType() == midiXparser::sysExMsgTypeMsk ) {
            sysexmsgcount++;
-           sysexlen += midiParser->getSysExMsgLen();
-
             printf("SYSEX MSG (len = %d) = [", midiParser->getSysExMsgLen() );
-            for (unsigned j = 0 ; j < midiParser->getSysExMsgLen() ; j++) {
-                printf("%2x," , midiParser->getSysExMsg()[j]);
-            }
-            printf("]\n");
+           if ( midiParser->getSysExMsgLen() ) {
+              sysexlen += midiParser->getSysExMsgLen();
+              for (unsigned j = 0 ; j < midiParser->getSysExMsgLen() ; j++) {
+                  printf("%2x," , midiParser->getSysExMsg()[j]);
+              }
+              printf("]\n");
+           }
+
          }
 
          else {

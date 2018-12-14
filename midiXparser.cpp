@@ -116,7 +116,7 @@ uint8_t midiXparser::getMidiStatusMsgLen(uint8_t midiStatus) {
 
 // Return the len of the last Sysex msg.
 // This persists until the next sysex.
-unsigned midiXparser::getSysExMsgLen() { return m_sysExBufferIndex ;}
+unsigned midiXparser::getSysExMsgLen() { return m_sysExMsgLen ;}
 
 // Return the parsed message buffered
 uint8_t * midiXparser::getMidiMsg() {
@@ -134,7 +134,7 @@ uint8_t * midiXparser::getMidiMsg() {
 }
 
 // Get the sysex internal buffer address. NULL if not allocated.
-uint8_t * midiXparser::getSysExMsg() { return m_sysExBuffer; };
+uint8_t * midiXparser::getSysExMsg() { return m_sysExBufferSize };
 
 // Get the last byte parsed
 byte midiXparser::getByte() { return m_readByte ;}
@@ -222,7 +222,7 @@ bool midiXparser::setSysExFilter(bool sysExFilter,unsigned sysExBufferSize) {
     if ( m_sysExBuffer!= NULL) free(m_sysExBuffer);
 
     m_sysExBufferSize  = sysExBufferSize ;
-    m_sysExBufferIndex = 0 ;
+    m_sysExMsgLen = 0 ;
     m_sysExBuffer = NULL ;
 
     if ( sysExFilter ) {
@@ -301,7 +301,7 @@ bool midiXparser::parse(byte readByte) {
                if ( m_midiMsgTypeFilterMsk & sysExMsgTypeMsk ) {
                   m_midiParsedMsgType = sysExMsgTypeMsk;
                   m_isByteCaptured = true ;
-                  m_isMsgReady = ( m_sysExBufferSize > 0); // On the fly ?
+                  m_isMsgReady = true;
                }
                return m_isMsgReady; // Even if no data !
        }
@@ -313,12 +313,13 @@ bool midiXparser::parse(byte readByte) {
        if (m_sysExMode ) {
               m_sysExMode = false;
               m_sysExError = true;
+              m_isMsgReady = (m_midiMsgTypeFilterMsk & sysExMsgTypeMsk) ;
        }
 
        // Start SYSEX
        if ( readByte == soxStatus ) {
               m_sysExMode = true;
-              m_sysExBufferIndex = 0;
+              m_sysExMsgLen = 0;
               m_midiCurrentMsgType = sysExMsgTypeMsk;
               m_isByteCaptured = ( m_midiMsgTypeFilterMsk & sysExMsgTypeMsk );
 
@@ -358,7 +359,6 @@ bool midiXparser::parse(byte readByte) {
         if ( m_expectedMsgLen == 1 ) {
           m_midiParsedMsgType = systemCommonMsgTypeMsk;//m_midiCurrentMsgType;
           m_isMsgReady = true;
-          return m_isMsgReady;
         }
       }
 
@@ -373,15 +373,18 @@ bool midiXparser::parse(byte readByte) {
 
               // Apply filter
               if (m_midiMsgTypeFilterMsk & sysExMsgTypeMsk) {
-                  if (m_sysExBufferSize == 0 ) m_isByteCaptured = true; // On the fly
+                  if (m_sysExBufferSize == 0 ) {
+                      m_isByteCaptured = true; // On the fly
+                      m_sysExMsgLen++;
+                  }
                   else
                   // Check overflow of the sysex buffer
-                  if ( m_sysExBufferIndex == m_sysExBufferSize) {
+                  if ( m_sysExMsgLen == m_sysExBufferSize) {
                         m_sysExError = true;
                         m_sysExMode = false;
                   }
                   else {
-                      m_sysExBuffer[m_sysExBufferIndex++] =   readByte ;
+                      m_sysExBuffer[m_sysExMsgLen++] =   readByte ;
                       m_isByteCaptured = true;
                   }
               }

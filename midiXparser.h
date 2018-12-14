@@ -64,8 +64,7 @@ class midiXparser {
 
   uint8_t* m_sysExBuffer = NULL;
   unsigned m_sysExBufferSize  = 0;
-  unsigned m_sysExBufferIndex = 0;
-  //bool     m_sysExFilterToggle = false;
+  unsigned m_sysExMsgLen = 0;
 
   public:
     // Midi messages type
