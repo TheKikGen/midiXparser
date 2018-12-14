@@ -162,6 +162,7 @@ class midiXparser {
 
     // Methods
     bool        isSysExMode() ;
+    bool        wasSysExMode() ;
     bool        isSysExError();
     bool        isByteCaptured() ;
     uint8_t     getMidiMsgType() ;
