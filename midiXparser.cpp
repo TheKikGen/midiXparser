@@ -303,7 +303,8 @@ bool midiXparser::parse(byte readByte) {
        // Start SYSEX ---------------------------------------------------------
 
        // Clean end of Sysex.
-       if (m_sysExMode && readByte == eoxStatus ) {
+       if ( readByte == eoxStatus ) {
+            if (m_sysExMode  ) {
                m_sysExMode = false;
                // Apply filter
                if ( m_midiMsgTypeFilterMsk & sysExMsgTypeMsk ) {
@@ -313,6 +314,12 @@ bool midiXparser::parse(byte readByte) {
                   m_isMsgReady = true;
                }
                return m_isMsgReady; // Even if no data !
+            } // Isolated EOX without SOX.
+            else {
+              m_sysExError = true;
+              m_sysExMsgLen = m_sysExBufferIndex = 0;
+            }
+            return false;
        }
 
        // SysEx can be terminated abnormally with a midi status.
