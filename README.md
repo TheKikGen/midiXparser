@@ -56,7 +56,7 @@ The demo sketch contains many tests to validate midiXparser features you can use
       }
     }
 
-#### Capture sysex messages with buffering
+#### Capture sysex messages with no buffering
 
     midiXparser midiParser;
     midiParser..setMidiMsgFilter( midiXparser::sysExMsgTypeMsk);
