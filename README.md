@@ -14,54 +14,68 @@ The demo sketch contains many tests to validate midiXparser features you can use
 
 #### Declare a parser with a filter on Note off/ Note on
 
+    #include <midiXparser.h>
 
-    midiXparser midiParser;
-    midiParser.setChannelVoiceMsgFilter(midiXparser::noteOffMsk | midiXparser::noteOnMsk );  
-    loop() 
+    midiXparser midiParser1, midiParser2;
+
+    void setup()
     {
-        if ( Serial.available() && ( midiParser.parse( Serial.read() ) {
-        // Do something for notes on/off
+      Serial.begin(31250);
+      midiParser1.setMidiMsgFilter( midiXparser::channelVoiceMsgTypeMsk );
+      // We create a second parser here for the demo,
+      // but this could be added to the filter of the 1st one to produce the same result.
+      // By testing the midi status byte at getMidiMsg()[0]
 
-        } 
-        (...)  
+      midiParser2.setRealTimeMsgFilter(midiXparser::realTimeMsgTypeMsk  );
+
     }
 
-#### Capture sysex messages with buffering
+    void loop()
+    {
+      if ( Serial.available()  ) {
+
+          byte receivedByte = Serial.read();
+
+          if ( midiParser1.parse( receivedByte ) ) { // Do we received a channel voice msg ?
+
+              // Set the channel # as enum ,  defined on channel 0.
+              uint8_t midiStatus = midiParser1.getMidiMsg[0] & 0xF0;
+
+              // Echo the note received
+              if ( midiStatus == midiXparser::noteOffStatus || midiStatus==midiXparser::noteOnStatus) {
+                delay(200);
+                Serial.write(midiParser1.getMidiMsg(),midiParser1.getMidiMsgLen());
+              }
+          }
+
+          if ( midiParser2.parse( receivedByte ) ) {
+             // Do something for realtime msg....
+
+          }
+
+      }
+    }
+
+#### Capture sysex messages with no buffering
 
     midiXparser midiParser;
-    midiParser.setSysExFilter(true,64);
-    loop() 
-    {
-        if ( Serial.available() && ( midiParser.parse( Serial.read() ) {
-        // Do something for sysex
-          if ( midiParser->getMidiMsgType() == midiXparser::sysExMsgType ) {
-            for (int j = 0 ; j < midiParser.getSysExMsgLen() ; j++) { 
-                Serial.print(midiParser->getSysExMsg()[j],HEX);
-                Serial.print(" - ");            
-                (...)  
-            } 
-           }
-           (...)  
-        }
+    midiParser..setMidiMsgFilter( midiXparser::sysExMsgTypeMsk);
     
-#### Remove Active sense, clock and SongPointer from the MIDI flow
-
-    midiXparser midiParser;
-    midiParser.setRealTimeMsgFilter(midiXparser::activeSensingMsk | midiXparser::timingClockMsk );
-    midiParser.setSystemCommonMsgFilter(midiXparser::songPosPointerMsk);
     loop() 
-    {    
-        if ( Serial.available() ) {
-        
-           if ( midiParser.parse( Serial.read() ) {
-              // Do something for active sense, clock and song pos
+    {
+        if ( Serial.available() && ( midiParser.parse( Serial.read() ) {
 
-           } else if (!midiParser.isByteCaptured()) Serial.write(midiParser.getByte() ) ;
-           (...)
-        }
+          if ( midiParser->getMidiMsgType() == midiXparser::sysExMsgType ) {
+                  // Do something for sysex message END  
+                  (...)
+          }  else 
+          
+          if ( midiParser->isSysexMode() && midiParser->isByteCaptured() {
+                // Do something for sysex data (storing, on the fly process...)
+          }
+        }        
     }
-
-
+    
 ### Methods
 
 #### bool parse(byte readByte)
@@ -73,11 +87,6 @@ The demo sketch contains many tests to validate midiXparser features you can use
 #### uint8_t *getMidiMsg()
     Get a pointer on the parsed midi message.
 
-#### uint8_t *getSysExMsg()
-    Get a pointer on the sysex parsed message ONLY when buffered.  Do not use this buffer is you did not
-    pass any size to setSysExFilter. Results will be impredictable....
-    The parsed message contains only data, and never 0XF0 (SOX) at the beginning, and 0XF7 (EOX) at the end.
-
 #### uint8_t getMidiMsgLen()
     Return the length of the last parsed message, including parsed sysex mssages.
     Return 0 if the parse method does not return true at the last call.    
@@ -87,9 +96,6 @@ The demo sketch contains many tests to validate midiXparser features you can use
 
 #### byte getByte()
     Return the last byte parsed.
-
-#### byte getPreviousByte()
-    Return the previous byte parsed.
 
 #### bool isSysExMode()
     Return true if the last call to the parse method has entering into system exclusive mode.  
@@ -153,31 +159,12 @@ The demo sketch contains many tests to validate midiXparser features you can use
 #### STATIC uint8_t getMidiStatusMsgType(uint8_t midiStatus)    
     . Return the msg type of a midi status (see also getMidiMsgType)
  
-#### void setMidiChannelFilter(uint8_t midiChannelFilter)
-    . Set a filter to return only messages of the concerned midi channel.
-
-#### void setChannelVoiceMsgFilter(uint8_t channelVoiceMsgFilterMask)
-    TODO
-
-#### void setSystemCommonMsgFilter(uint8_t systemCommonMsgFilterMask)
-    TODO
-
-#### void setRealTimeMsgFilter(uint8_t realTimeMsgFilterMask)
-    TODO
-
 #### void setMidiMsgFilter(allNoValues value)
-    TODO
-
-#### bool setSysExFilter(bool sysExFilterToggle,unsigned sysExBufferSize=0)
-    . sysExFilter(true,0) will start filtering sysex messages without buffering.  You can
-    use the isByteCaptured and the isSysexMode methods to process the sysex midiflow.
-    . sysExFilter(true, nn) will start filtering sysex messages with buffering, so when 
-    the parse method will return true, bytes will be directly available.
-    A clean end of sysex will make the parse methode to return true, buffered or not.
-
-#### (static) unsigned encodeSysEx(const byte* inData, byte* outSysEx, unsigned inLength,bool fromMsbToLsb=true)
-    TODO
-
-#### (static) unsigned decodeSysEx(const byte* inSysEx, byte* outData, unsigned inLength,bool fromMsbToLsb=true)
-    TODO
-
+    . filter is defined by combining the followings mask with a BINARY OR :
+    
+        noneMsgTypeMsk          = 0B0000,
+        channelVoiceMsgTypeMsk  = 0B0001,
+        systemCommonMsgTypeMsk  = 0B0010,
+        realTimeMsgTypeMsk      = 0B0100,
+        sysExMsgTypeMsk         = 0B1000,
+        allMsgTypeMsk           = 0B1111
