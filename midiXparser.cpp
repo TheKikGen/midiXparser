@@ -128,7 +128,7 @@ byte midiXparser::getByte() { return m_readByte ;}
 // Set filter mask all/none for all midi Msg including Sysex
 // For Sysex, the "on the fly" mode is activated by default
 // To change that, you must call explicitly setSysExFilter again.
-void midiXparser::setMidiMsgFilter(midiMsgTypeMaskValue midiMsgTypeFilterMsk) {
+void midiXparser::setMidiMsgFilter(uint8_t midiMsgTypeFilterMsk) {
   m_midiMsgTypeFilterMsk = midiMsgTypeFilterMsk;
 }
 

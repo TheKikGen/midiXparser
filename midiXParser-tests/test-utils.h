@@ -76,7 +76,7 @@ bool midiCounterTests(
      if ( midiParser->isByteCaptured() ) capturedBytesCount++ ;
      else noCapturedBytesCount++;
    }
-printf("   msgcount %d  msgcountsys %d  sysexlen  %d syx err %d  cap %d  ",msgCount, sysExMsgCount,sysExLen,sysExErrorCount,capturedBytesCount);
+//printf("   msgcount %d  msgcountsys %d  sysexlen  %d syx err %d  cap %d  ",msgCount, sysExMsgCount,sysExLen,sysExErrorCount,capturedBytesCount);
 
    pass = (  msgCount == expMsgCount &&
              capturedBytesCount == expCapturedBytes &&
