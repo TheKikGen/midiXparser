@@ -80,9 +80,8 @@ The demo sketch contains many tests to validate midiXparser features you can use
 
 #### bool parse(byte readByte)
     Parse a byte and return true if a complete midi message was detected, according to the filters set.
-    This method is also used for sysex, buffered or unbuffered with setSysExFilter.
-    parse method will never return true for a sysex error. 
-    You have to check isSysexError() for an incomplete messsages.
+    This method is also used for sysex end of message. The parse method will never return true for a sysex error. 
+    You have to check isSysexError() for an incomplete messsages, eventually.
 
 #### uint8_t *getMidiMsg()
     Get a pointer on the parsed midi message.
@@ -104,18 +103,17 @@ The demo sketch contains many tests to validate midiXparser features you can use
 
 #### bool wasSysExMode()
     Return true if the last call to the parse method has stopped the sysex mode, because of EOX or an sysex error.
-    The sysex message is stored if with Setfilter with a size was used.
     
 #### bool isSysExError()
     Return true if the last call to the parse method has detected an abnormal end of sysex,
-    generally a midi status (a byte > 0x80) no beeing the EOX byte, or a sysex buffer overflow.
+    generally a midi status (a byte > 0x80) no beeing the EOX byte.
   
 #### bool isByteCaptured()  
-    Return true if the last byte parsed is used to prepare a midi message.
+    Return true if the last byte parsed is belonging to a current midi message.  
+    Return false if filter doesn't match, or the parsed byte is not belonging to e midi message.
 
 #### uint8_t getMidiMsgType()
-    Return the type of the last parsed midi message. 
-    
+    Return the type of the last parsed midi message.    
     Types are defined by the following enumeration :
     . midiXparser::noneMsgType
     . midiXparser::channelVoiceMsgType
@@ -160,11 +158,6 @@ The demo sketch contains many tests to validate midiXparser features you can use
     . Return the msg type of a midi status (see also getMidiMsgType)
  
 #### void setMidiMsgFilter(allNoValues value)
-    . filter is defined by combining the followings mask with a BINARY OR :
-    
-        noneMsgTypeMsk          = 0B0000,
-        channelVoiceMsgTypeMsk  = 0B0001,
-        systemCommonMsgTypeMsk  = 0B0010,
-        realTimeMsgTypeMsk      = 0B0100,
-        sysExMsgTypeMsk         = 0B1000,
-        allMsgTypeMsk           = 0B1111
+    Filter is defined by combining the getMidiMsgTyps mask with a BINARY OR. For example
+    "channelVoiceMsgTypeMsk | systemCommonMsgTypeMsk"
+
