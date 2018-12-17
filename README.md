@@ -158,6 +158,7 @@ The demo sketch contains many tests to validate midiXparser features you can use
     . Return the msg type of a midi status (see also getMidiMsgType)
  
 #### void setMidiMsgFilter(allNoValues value)
-    Filter is defined by combining the getMidiMsgTyps mask with a BINARY OR. For example
-    "channelVoiceMsgTypeMsk | systemCommonMsgTypeMsk"
+    Filter is defined by combining the getMidiMsgType mask with a BINARY OR. For example
+    "channelVoiceMsgTypeMsk | systemCommonMsgTypeMsk".
+    By default no filter is applied. You must explicitely set a filter before parsing.
 
