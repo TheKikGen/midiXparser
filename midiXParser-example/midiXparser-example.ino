@@ -34,31 +34,36 @@ midiXparser midiParser1, midiParser2;
 void setup()
 {
   Serial.begin(31250);
-  midiParser1.setChannelVoiceMsgFilter(midiXparser::noteOffMsk | midiXparser::noteOnMsk );
-  
-  // We create a second parser here for the demo, 
+  midiParser1.setMidiMsgFilter( midiXparser::channelVoiceMsgTypeMsk );
+  // We create a second parser here for the demo,
   // but this could be added to the filter of the 1st one to produce the same result.
   // By testing the midi status byte at getMidiMsg()[0]
-  
-  midiParser2.setRealTimeMsgFilter(midiXparser::allRealTimeMsgMsk  );
-  
+
+  midiParser2.setRealTimeMsgFilter(midiXparser::realTimeMsgTypeMsk  );
+
 }
 
 void loop()
-{  
+{
   if ( Serial.available()  ) {
 
       byte receivedByte = Serial.read();
-      
-      if ( midiParser1.parse( receivedByte ) ) {
+
+      if ( midiParser1.parse( receivedByte ) ) { // Do we received a channel voice msg ?
+
+          // Set the channel # as enum ,  defined on channel 0.
+          uint8_t midiStatus = midiParser1.getMidiMsg[0] & 0xF0;
+
           // Echo the note received
-          delay(200);
-          Serial.write(midiParser1.getMidiMsg(),midiParser1.getMidiMsgLen());
+          if ( midiStatus == midiXparser::noteOffStatus || midiStatus==midiXparser::noteOnStatus) {
+            delay(200);
+            Serial.write(midiParser1.getMidiMsg(),midiParser1.getMidiMsgLen());
+          }
       }
 
       if ( midiParser2.parse( receivedByte ) ) {
-         // Do something for realtime msg.... 
-        
+         // Do something for realtime msg....
+
       }
 
   }

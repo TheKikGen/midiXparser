@@ -7,7 +7,7 @@ HEADERS = ../midiXparser.h
 
 MAIN = tst-midixparser
 
-all: ${MAIN}
+all: clean ${MAIN}
 	@echo   Tests for $(MAIN) was succefully compiled
 
 ${MAIN}: ${OBJS}

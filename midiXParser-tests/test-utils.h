@@ -64,16 +64,19 @@ bool midiCounterTests(
    for (unsigned i = 0; i< dummySize ; i++ ) {
      if ( midiParser->parse( dummy[i] ) ) {
         msgCount++ ;
-        if (  midiParser->getMidiMsgType() == midiXparser::sysExMsgTypeMsk ) {
-              sysExMsgCount++;
-              sysExLen += midiParser->getSysExMsgLen();
-        }
      }
-     if ( midiParser->isSysExError() ) sysExErrorCount++;
+     if (  midiParser->wasSysExMode() ) {
+           sysExLen += midiParser->getSysExMsgLen();
+           if ( midiParser->isSysExError() )
+            sysExErrorCount++;
+           else
+            sysExMsgCount++;
+     }
+
      if ( midiParser->isByteCaptured() ) capturedBytesCount++ ;
      else noCapturedBytesCount++;
    }
-printf("msgcount %d  msgcountsys %d  sysexlen  %d syx err %d  cap %d  ",msgCount, sysExMsgCount,sysExLen,sysExErrorCount,capturedBytesCount);
+printf("   msgcount %d  msgcountsys %d  sysexlen  %d syx err %d  cap %d  ",msgCount, sysExMsgCount,sysExLen,sysExErrorCount,capturedBytesCount);
 
    pass = (  msgCount == expMsgCount &&
              capturedBytesCount == expCapturedBytes &&
@@ -93,9 +96,7 @@ bool midiCheckContent(midiXparser *midiParser,uint8_t * dummy,const unsigned dum
   for (unsigned i = 0; i< dummySize ; i++ ) {
     m = midiParser->parse( dummy[i] ) ;
     if ( midiParser->isByteCaptured() ) {
-        if ( !midiParser->isSysExMode() ||
-              (midiParser->isSysExMode() && (dummy[i] != 0xF0 && dummy[i] != 0xF7) ) )
-              msg[j++] = midiParser->getByte();
+                  msg[j++] = midiParser->getByte();
     }
     if ( m ) break ;
     if ( midiParser->isSysExError() ) break;
@@ -104,9 +105,9 @@ bool midiCheckContent(midiXparser *midiParser,uint8_t * dummy,const unsigned dum
   if ( ! midiParser->isSysExError() && !m ) return false;
 
 
-  for (unsigned i = 0; i < midiParser->getMidiMsgLen() ; i++ ) {
-    if (midiParser->getMidiMsg()[i] !=  msg[i] ) {
-    //  printf("%2x != %2x\n",midiParser->getMidiMsg()[i],msg[i]);
+  for (unsigned i = 0; i <j ; i++ ) {
+    if (dummy[i] !=  msg[i] ) {
+      //printf("%2x != %2x\n",midiParser->getMidiMsg()[i],msg[i]);
       return false;
     }
   }
@@ -141,6 +142,9 @@ void serializer(midiXparser *midiParser,uint8_t dummy[], unsigned dummySize ) {
   unsigned sysexmsgcount = 0;
   unsigned sysexerrorcount = 0;
 
+  unsigned sx = 0;
+  uint8_t sxmsg[64];
+
   for (unsigned i = 0; i< dummySize ; i++ ) {
 
     bool msg = midiParser->parse( dummy[i] );
@@ -151,6 +155,8 @@ void serializer(midiXparser *midiParser,uint8_t dummy[], unsigned dummySize ) {
     if ( midiParser->isByteCaptured()) {
         printf("c");
         capturedbytescount++ ;
+        if ( midiParser->isSysExMode() && dummy[i] != 0xF0) sxmsg[sx++] = midiParser->getByte();
+
     } else {
         printf(" ");
         nocapturedbytescount++;
@@ -167,29 +173,32 @@ void serializer(midiXparser *midiParser,uint8_t dummy[], unsigned dummySize ) {
     printf(" |");
 
     if ( ++nl >= cr ) { printf("\n"); nl = 0 ; }
+
     if (msg || midiParser->isSysExError() ) {
-          if ( nl < cr ) printf("\n");
-          nl = 0;
+
+         if ( nl < cr )
+            printf("\n");
+
+         nl = 0;
 
          if ( midiParser->wasSysExMode() ) {
             if ( midiParser->isSysExError() ) printf("** ERROR **" );
-            else { sysexmsgcount++; sysexlen += midiParser->getSysExMsgLen(); }
+            else { sysexmsgcount++; }
+            sysexlen += midiParser->getSysExMsgLen();
 
             printf("SYSEX MSG (len = %d) = [", midiParser->getSysExMsgLen() );
-
-            if ( !midiParser->isSysExOnTheFly() ) {
-              for (unsigned j = 0 ; j < midiParser->getSysExMsgLen() ; j++) {
-                  printf("%2x," , midiParser->getSysExMsg()[j]);
-              }
-              printf("]\n");
-           } else printf("on the fly - unbuffered]\n");
+            for (unsigned j = 0 ; j < sx ; j++) {
+                  printf("%2x," , sxmsg[j] );
+            }
+            sx = 0;
+            printf("]\n");
 
          }
-         if ( msg && midiParser->getMidiMsgType() != midiXparser::sysExMsgTypeMsk ) {
-          printf("MIDI MSG = [%2X",midiParser->getMidiMsg()[0]);
-          if (midiParser->getMidiMsgLen() >=2) { printf(",%2x",midiParser->getMidiMsg()[1]);}
-          if (midiParser->getMidiMsgLen() ==3) { printf(",%2x",midiParser->getMidiMsg()[2]);}
-          printf("]\n");
+         if ( msg && midiParser->getMidiMsgType() != midiXparser::sysExMsgTypeMsk) {
+            printf("MIDI MSG = [%2X",midiParser->getMidiMsg()[0]);
+            if (midiParser->getMidiMsgLen() >=2) { printf(",%2x",midiParser->getMidiMsg()[1]);}
+            if (midiParser->getMidiMsgLen() ==3) { printf(",%2x",midiParser->getMidiMsg()[2]);}
+            printf("]\n");
          }
          printf("\n");
     }

@@ -42,12 +42,15 @@ printf("\n======================================================================
 printf("midiXparser class TESTS\n");
 printf("============================================================================\n\n");
 
-test10a(); test10b(); test10c(); test10d(); test10e(); test10f(); test10g();
-test10h(); test10i(); test10j(); test10k(); test10l(); test10m(); test10n();
+test10a(); test10b();
+//test10c(); test10d(); test10e(); test10f(); test10g();
+//test10h(); test10i(); test10j(); test10k(); test10l();
+test10m(); test10n();
 test10o(); test10p(); test10q();
 
-test20a(); test20b(); test21b(); test20c(); test20d(); test20e(); test20f(); test20g();
-test20h(); test20i();
+test20a();
+//test20b(); test21b(); test20c(); test20d(); test20e();
+test20f(); test20g(); test20h(); test20i();
 
 printf("\n======================== END OF TESTS ======================================\n\n");
 }
