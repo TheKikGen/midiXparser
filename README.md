@@ -157,7 +157,7 @@ The demo sketch contains many tests to validate midiXparser features you can use
 #### STATIC uint8_t getMidiStatusMsgType(uint8_t midiStatus)    
     . Return the msg type of a midi status (see also getMidiMsgType)
  
-#### void setMidiMsgFilter(allNoValues value)
+#### void setMidiMsgFilter(uint8_t midiMsgTypeMaskValues)
     Filter is defined by combining the getMidiMsgType mask with a BINARY OR. For example
     "channelVoiceMsgTypeMsk | systemCommonMsgTypeMsk".
     By default no filter is applied. You must explicitely set a filter before parsing.
