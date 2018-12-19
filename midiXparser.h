@@ -104,19 +104,20 @@ class midiXparser {
     midiXparser();
 
     // Methods
+    // Methods
     bool        isSysExMode() ;
     bool        wasSysExMode() ;
     bool        isSysExError();
     bool        isByteCaptured() ;
     uint8_t     getMidiMsgType() ;
-    static uint8_t     getMidiStatusMsgTypeMsk(uint8_t midiStatus) ;
     uint8_t     getMidiMsgLen();
-    static uint8_t     getMidiStatusMsgLen(uint8_t midiStatus);
     uint8_t *   getMidiMsg();
     byte        getByte() ;
     unsigned    getSysExMsgLen() ;
-    void        setMidiMsgFilter(uint8_t value);
+    void        setMidiMsgFilter(midiMsgTypeMaskValue value);
     bool        parse(byte readByte);
+    static uint8_t     getMidiStatusMsgTypeMsk(uint8_t midiStatus) ;
+    static uint8_t     getMidiStatusMsgLen(uint8_t midiStatus);
 
 };
 
