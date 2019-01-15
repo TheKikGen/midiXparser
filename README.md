@@ -106,7 +106,7 @@ The demo sketch contains many tests to validate midiXparser features you can use
     
 #### bool isSysExError()
     Return true if the last call to the parse method has detected an abnormal end of sysex,
-    generally a midi status (a byte > 0x80) no beeing the EOX byte.
+    generally a midi status (a byte >= 0x80) no beeing the EOX byte.
   
 #### bool isByteCaptured()  
     Return true if the last byte parsed is belonging to a current midi message.  
