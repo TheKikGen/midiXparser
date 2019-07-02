@@ -3,7 +3,7 @@ A small footprint midi parser class
 
 
 The midiXparser class allows to create rapidily "low level" midi parsers with a small footprint in your applications.
-It is platform agnostic so can be used with the Arduino platform or with the any c++ compiler.
+It is platform agnostic so can be used with the Arduino platform or with any c++ compiler.
 
 midiXParser class has a full midi specs coverage, including running status and sysex, and do not rely on serial ports. 
 You can pass a byte coming from an array (as done in demo sketch) or even a file.
