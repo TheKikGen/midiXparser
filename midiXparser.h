@@ -114,7 +114,7 @@ class midiXparser {
     uint8_t *   getMidiMsg();
     byte        getByte() ;
     unsigned    getSysExMsgLen() ;
-    void        setMidiMsgFilter(midiMsgTypeMaskValue value);
+    void        setMidiMsgFilter(uint8_t value);
     bool        parse(byte readByte);
     static uint8_t     getMidiStatusMsgTypeMsk(uint8_t midiStatus) ;
     static uint8_t     getMidiStatusMsgLen(uint8_t midiStatus);
