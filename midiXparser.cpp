@@ -72,6 +72,9 @@ bool midiXparser::isByteCaptured() { return m_isByteCaptured; }
 // Return the type of the last parsed midi message
 uint8_t  midiXparser::getMidiMsgType() { return m_midiParsedMsgType; }
 
+// Return the type of the currently parsed midi message
+uint8_t  midiXparser::getMidiCurrentMsgType() { return m_midiCurrentMsgType; }
+
 // Return the type of a midi status (cf enum)
 uint8_t  midiXparser::getMidiStatusMsgTypeMsk(uint8_t midiStatus) {
 
@@ -164,7 +167,7 @@ bool midiXparser::parse(byte readByte) {
 
        // Real time messages must be processed as transparent for all other status
        if  ( readByte >= 0xF8 ) {
-            m_midiParsedMsgType = realTimeMsgTypeMsk;
+            m_midiParsedMsgType = m_midiCurrentMsgType = realTimeMsgTypeMsk;
             m_midiMsgRealTime[0] = readByte;
             return m_isByteCaptured;
        }
@@ -185,12 +188,13 @@ bool midiXparser::parse(byte readByte) {
        if ( readByte == eoxStatus ) {
             m_sysExMsgLen = m_sysExindexMsgLen;
             if (m_sysExMode ) {
-               m_midiParsedMsgType = sysExMsgTypeMsk;
+               m_midiParsedMsgType = m_midiCurrentMsgType ;
                m_sysExMode = false;
                return true;
             } // Isolated EOX without SOX.
             m_sysExMsgLen = 0;
             m_sysExError = true;
+	    m_midiCurrentMsgType = sysExMsgTypeMsk;
             return false;
        }
 
