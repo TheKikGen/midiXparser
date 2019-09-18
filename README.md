@@ -120,6 +120,15 @@ The demo sketch contains many tests to validate midiXparser features you can use
     . midiXparser::systemCommonMsgType
     . midiXparser::realTimeMsgType
     . midiXparser::sysExMsgType
+
+#### uint8_t getMidiCurrentMsgType() ;
+    Return the type of midi message being currenlty parsed.    
+    Types are defined by the following enumeration :
+    . midiXparser::noneMsgType
+    . midiXparser::channelVoiceMsgType
+    . midiXparser::systemCommonMsgType
+    . midiXparser::realTimeMsgType
+    . midiXparser::sysExMsgType  
     
 #### STATIC uint8_t getMidiStatusMsgLen(uint8_t midiStatus)
     Return the standard length of a midi status. Midi status are defined 
