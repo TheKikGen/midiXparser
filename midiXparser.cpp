@@ -188,7 +188,7 @@ bool midiXparser::parse(byte readByte) {
        if ( readByte == eoxStatus ) {
             m_sysExMsgLen = m_sysExindexMsgLen;
             if (m_sysExMode ) {
-               m_midiParsedMsgType = m_midiCurrentMsgType ;
+               m_midiParsedMsgType = m_midiCurrentMsgType = sysExMsgTypeMsk  ;
                m_sysExMode = false;
                return true;
             } // Isolated EOX without SOX.
