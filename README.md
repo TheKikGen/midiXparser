@@ -26,7 +26,7 @@ The demo sketch contains many tests to validate midiXparser features you can use
       // but this could be added to the filter of the 1st one to produce the same result.
       // By testing the midi status byte at getMidiMsg()[0]
 
-      midiParser2.setRealTimeMsgFilter(midiXparser::realTimeMsgTypeMsk  );
+      midiParser2.setMidiMsgFilter(midiXparser::realTimeMsgTypeMsk  );
 
     }
 
@@ -38,7 +38,7 @@ The demo sketch contains many tests to validate midiXparser features you can use
 
           if ( midiParser1.parse( receivedByte ) ) { // Do we received a channel voice msg ?
 
-              // Set the channel # as enum ,  defined on channel 0.
+              // Get midi status without the channel
               uint8_t midiStatus = midiParser1.getMidiMsg[0] & 0xF0;
 
               // Echo the note received
