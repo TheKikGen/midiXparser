@@ -38,8 +38,8 @@ The demo sketch contains many tests to validate midiXparser features you can use
 
           if ( midiParser1.parse( receivedByte ) ) { // Do we received a channel voice msg ?
 
-              // Get midi status without the channel
-              uint8_t midiStatus = midiParser1.getMidiMsg[0] & 0xF0;
+              // Set the channel # as enum ,  defined on channel 0.
+              byte  midiStatus = midiParser1.getMidiMsg()[0] & 0xF0;
 
               // Echo the note received
               if ( midiStatus == midiXparser::noteOffStatus || midiStatus==midiXparser::noteOnStatus) {
@@ -54,8 +54,7 @@ The demo sketch contains many tests to validate midiXparser features you can use
           }
 
       }
-    }
-
+      
 #### Capture sysex messages with no buffering
 
     midiXparser midiParser;
