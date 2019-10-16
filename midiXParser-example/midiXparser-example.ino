@@ -39,7 +39,7 @@ void setup()
   // but this could be added to the filter of the 1st one to produce the same result.
   // By testing the midi status byte at getMidiMsg()[0]
 
-  midiParser2.setRealTimeMsgFilter(midiXparser::realTimeMsgTypeMsk  );
+  midiParser2.setMidiMsgFilter(midiXparser::realTimeMsgTypeMsk  );
 
 }
 
@@ -52,7 +52,7 @@ void loop()
       if ( midiParser1.parse( receivedByte ) ) { // Do we received a channel voice msg ?
 
           // Set the channel # as enum ,  defined on channel 0.
-          uint8_t midiStatus = midiParser1.getMidiMsg[0] & 0xF0;
+          byte  midiStatus = midiParser1.getMidiMsg()[0] & 0xF0;
 
           // Echo the note received
           if ( midiStatus == midiXparser::noteOffStatus || midiStatus==midiXparser::noteOnStatus) {
