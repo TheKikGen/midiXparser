@@ -32,7 +32,7 @@ void test10b() {
    midiParser.setMidiMsgFilter( midiXparser::allMsgTypeMsk );
 
    pass = midiCounterTests(&midiParser,dummy,dummySize,
-     22 , // expMsgCount,
+     30 , // expMsgCount,
      dummySize, // expCapturedBytes,
      0 , // expSysExMsgCount,
      0 , // expSysExErrorCount,
@@ -54,8 +54,8 @@ void test10m() {
    midiParser.setMidiMsgFilter( midiXparser::channelVoiceMsgTypeMsk );
 
    pass = midiCounterTests(&midiParser,dummy,dummySize,
-     15 , // expMsgCount,
-     37, // expCapturedBytes,
+     17 , // expMsgCount,
+     43, // expCapturedBytes,
      0 , // expSysExMsgCount,
      0 , // expSysExErrorCount,
      0 ); // expSysExLen
@@ -98,8 +98,8 @@ void test10o() {
       midiParser.setMidiMsgFilter( midiXparser::realTimeMsgTypeMsk );
 
       pass = midiCounterTests(&midiParser,dummy,dummySize,
-        6 , // expMsgCount,
-        6, // expCapturedBytes,
+        12 , // expMsgCount,
+        12, // expCapturedBytes,
         0 , // expSysExMsgCount,
         0 , // expSysExErrorCount,
         0 ); // expSysExLen

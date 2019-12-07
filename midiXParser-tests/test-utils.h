@@ -195,7 +195,7 @@ void serializer(midiXparser *midiParser,uint8_t dummy[], unsigned dummySize ) {
 
          }
          if ( msg && midiParser->getMidiMsgType() != midiXparser::sysExMsgTypeMsk) {
-            printf("MIDI MSG = [%2X",midiParser->getMidiMsg()[0]);
+            printf("MIDI MSG %d = [%2X",msgcount,midiParser->getMidiMsg()[0]);
             if (midiParser->getMidiMsgLen() >=2) { printf(",%2x",midiParser->getMidiMsg()[1]);}
             if (midiParser->getMidiMsgLen() ==3) { printf(",%2x",midiParser->getMidiMsg()[2]);}
             printf("]\n");
