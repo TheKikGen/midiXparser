@@ -38,12 +38,11 @@ The demo sketch contains many tests to validate midiXparser features you can use
 
           if ( midiParser1.parse( receivedByte ) ) { // Do we received a channel voice msg ?
 
-            // Set the channel # as enum ,  defined on channel 0.
-            if ( midiparser1.isMidiStatus(midiXparser::noteOffStatus) || midiparser1.isMidiStatus(midiXparser::noteOnStatus) ) {
-                // Echo the note received
+             // Echo the note received
+             if ( midiParser1.isMidiStatus(midiXparser::noteOffStatus) || midiParser1.isMidiStatus(midiXparser::noteOnStatus) ) {
                 delay(200);
                 Serial.write(midiParser1.getMidiMsg(),midiParser1.getMidiMsgLen());
-            }
+             }
           }
 
           if ( midiParser2.parse( receivedByte ) ) {
