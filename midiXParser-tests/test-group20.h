@@ -24,7 +24,37 @@ void test20a() {
 }
 
 void test20b() {
+  header("20b","isMidiStatus validation                             ");
+  uint8_t dummy[] = {
+    0x83, 0x40,0x40,
+    0x94, 0x40,0x40,
+    0xB2, 0x40,0x40,
+    0xC0, 0x40,0x40,
+    0XF8,
+    0xF2,0X01,0X01,
+    0xF0,0x01,0x02,0xF7,
+  };
 
+  unsigned dummySize = sizeof(dummy);
+  bool pass=false;
+  midiXparser midiParser;
+  midiParser.setMidiMsgFilter( midiXparser::allMsgTypeMsk );
+  uint8_t count = 0;
+
+  for ( uint8_t i=0 ; i< dummySize ; i++ ) {
+    if ( midiParser.parse(dummy[i]) ) {
+      if ( midiParser.isMidiStatus(midiXparser::noteOffStatus ) ) count++;
+      if ( midiParser.isMidiStatus(midiXparser::controlChangeStatus ) ) count++;
+      if ( midiParser.isMidiStatus(midiXparser::timingClockStatus ) ) count++;
+      if ( midiParser.isMidiStatus(midiXparser::songPosPointerStatus ) ) count++;
+      if ( midiParser.isMidiStatus(midiXparser::soxStatus ) ) count++;
+      if ( midiParser.isMidiStatus(midiXparser::eoxStatus ) ) count++;
+    }
+  }
+
+  pass = ( count == 4 ) ;
+  footer(pass);
+  if (!pass) serializer(&midiParser,dummy,dummySize );
 
 }
 void test21b() {

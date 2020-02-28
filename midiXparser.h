@@ -41,7 +41,7 @@ typedef uint8_t byte;
 
 class midiXparser {
   uint8_t  m_midiMsg[3];
-  uint8_t  m_midiMsgRealTime[1]; // Used for real time only
+  uint8_t  m_midiMsgRealTime; // Used for real time only
   uint8_t  m_indexMsgLen = 0;
   uint8_t  m_expectedMsgLen = 0;
   bool     m_sysExMode = false;
@@ -104,21 +104,21 @@ class midiXparser {
     midiXparser();
 
     // Methods
-    // Methods
     bool        isSysExMode() ;
     bool        wasSysExMode() ;
     bool        isSysExError();
     bool        isByteCaptured() ;
+    bool        isMidiStatus(midiStatusValue );
     uint8_t     getMidiMsgType() ;
     uint8_t     getMidiCurrentMsgType() ;
     uint8_t     getMidiMsgLen();
     uint8_t *   getMidiMsg();
     byte        getByte() ;
     unsigned    getSysExMsgLen() ;
-    void        setMidiMsgFilter(uint8_t value);
-    bool        parse(byte readByte);
-    static uint8_t     getMidiStatusMsgTypeMsk(uint8_t midiStatus) ;
-    static uint8_t     getMidiStatusMsgLen(uint8_t midiStatus);
+    void        setMidiMsgFilter(uint8_t );
+    bool        parse(byte );
+    static uint8_t     getMidiStatusMsgTypeMsk(uint8_t ) ;
+    static uint8_t     getMidiStatusMsgLen(uint8_t );
 
 };
 

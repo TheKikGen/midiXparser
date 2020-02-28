@@ -48,8 +48,8 @@ test10a(); test10b();
 test10m(); test10n();
 test10o(); test10p(); test10q();
 
-test20a();
-//test20b(); test21b(); test20c(); test20d(); test20e();
+test20a(); test20b(); 
+//test21b(); test20c(); test20d(); test20e();
 test20f(); test20g(); test20h(); test20i();
 
 printf("\n======================== END OF TESTS ======================================\n\n");

@@ -69,6 +69,21 @@ bool midiXparser::isSysExError() { return m_sysExError ;}
 // Used to check if the last byte parsed was captured
 bool midiXparser::isByteCaptured() { return m_isByteCaptured; }
 
+// Check the midi status of  a non sysex parsed midi msg
+bool midiXparser::isMidiStatus(midiStatusValue midiStatus) {
+
+  if ( m_midiParsedMsgType == noneMsgTypeMsk ) return false;  // Only if a parsed msg exists
+
+  // Channel voice msg
+  if ( m_midiParsedMsgType == channelVoiceMsgTypeMsk ) return ( ( m_midiMsg[0] & 0xF0 ) == (uint8_t)midiStatus ) ;
+  // System Common msg
+  if ( m_midiParsedMsgType == systemCommonMsgTypeMsk ) return ( m_midiMsg[0] == (uint8_t)midiStatus ) ;
+  // realtime msg
+  if ( m_midiParsedMsgType == realTimeMsgTypeMsk ) return ( m_midiMsgRealTime == (uint8_t)midiStatus) ;
+
+  return false;
+}
+
 // Return the type of the last parsed midi message
 uint8_t  midiXparser::getMidiMsgType() { return m_midiParsedMsgType; }
 
@@ -115,7 +130,7 @@ uint8_t * midiXparser::getMidiMsg() {
 
     switch (m_midiParsedMsgType) {
       case realTimeMsgTypeMsk:
-        return m_midiMsgRealTime;
+        return &m_midiMsgRealTime;
         break;
       case sysExMsgTypeMsk:
         return (uint8_t*) NULL;
@@ -168,7 +183,7 @@ bool midiXparser::parse(byte readByte) {
        // Real time messages must be processed as transparent for all other status
        if  ( readByte >= 0xF8 ) {
             m_midiParsedMsgType = m_midiCurrentMsgType = realTimeMsgTypeMsk;
-            m_midiMsgRealTime[0] = readByte;
+            m_midiMsgRealTime = readByte;
             return m_isByteCaptured;
        }
 
