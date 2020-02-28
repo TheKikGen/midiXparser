@@ -111,6 +111,10 @@ The demo sketch contains many tests to validate midiXparser features you can use
     Return true if the last byte parsed is belonging to a current midi message.  
     Return false if filter doesn't match, or the parsed byte is not belonging to e midi message.
 
+#### bool isMidiStatus(enum midiStatusValue)
+    Return true if the last parsed message is matching the midi status. 
+    Sysex messages are ignored and return always false, at it has no sense here
+ 
 #### uint8_t getMidiMsgType()
     Return the type of the last parsed midi message.    
     Types are defined by the following enumeration :
