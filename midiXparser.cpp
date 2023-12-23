@@ -23,7 +23,7 @@
   arising out of or in connection with the use or performance of
   this software.
 
-   Licence : MIT.
+   Licence : GPL V3.
 */
 
 #include "midiXparser.h"
